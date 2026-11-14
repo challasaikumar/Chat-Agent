@@ -82,10 +82,12 @@ async function start(): Promise<void> {
     void shutdown("SIGTERM");
   });
 
-  const host = env.API_HOST;
+  // Prefer platform PORT + public bind so Render/Railway can detect the port.
+  const port = Number(process.env.PORT) || env.API_PORT;
+  const host = process.env.PORT ? "0.0.0.0" : env.API_HOST;
   try {
-    await app.listen({ port: env.API_PORT, host });
-    app.log.info(`API listening on http://${host}:${env.API_PORT}`);
+    await app.listen({ port, host });
+    app.log.info(`API listening on http://${host}:${port}`);
   } catch (error) {
     app.log.error({ err: error }, "Failed to start server");
     process.exit(1);

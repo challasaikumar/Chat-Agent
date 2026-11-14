@@ -1,6 +1,9 @@
 import type { ApiResponse } from "@minimi/shared";
 
-const API_BASE = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "";
+/** Empty in local/dev (Vite proxies /api). Set to Render API origin in Vercel. */
+export const API_BASE = (
+  import.meta.env.VITE_API_BASE_URL as string | undefined
+)?.replace(/\/$/, "") ?? "";
 
 let csrfToken: string | null = null;
 

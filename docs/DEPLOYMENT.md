@@ -70,6 +70,38 @@ Prefer serving UI and API on one domain (`https://YOUR_DOMAIN/` + `/api/`). Set 
 5. SSE not buffered (watch first token)
 6. Logout rejects old cookie
 
+## Vercel (static frontend)
+
+Deploy only `apps/web` (Vite). The API stays on Render/VPS.
+
+1. Push the repo (includes [vercel.json](../vercel.json)).
+2. [vercel.com/new](https://vercel.com/new) → import the GitHub repo.
+3. Leave **Root Directory** empty (repo root). `vercel.json` sets install/build/output.
+4. Environment variables (Production + Preview):
+
+| Variable | Value |
+| --- | --- |
+| `VITE_API_BASE_URL` | `https://YOUR-API.onrender.com` (no trailing slash) |
+| `VITE_APP_NAME` | `Minimi` (optional) |
+
+5. Deploy. Note the URL, e.g. `https://chat-agent.vercel.app`.
+6. On the **API** (Render), set:
+
+```env
+APP_ALLOWED_ORIGINS=https://chat-agent.vercel.app
+AUTH_COOKIE_NAME=minimi_session
+```
+
+Redeploy or restart the API after changing env. Production cookies use `SameSite=None; Secure` when not using `__Host-`, so login works cross-origin.
+
+CLI alternative from repo root:
+
+```bash
+npx vercel link
+npx vercel env add VITE_API_BASE_URL production
+npx vercel --prod
+```
+
 ## Render (recommended PaaS for the API)
 
 The API is a long-running Node web service. Use [render.yaml](../render.yaml).

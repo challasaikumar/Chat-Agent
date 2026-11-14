@@ -51,32 +51,43 @@ export function getRequestUserId(request: FastifyRequest): string {
   return request.auth.user.id;
 }
 
+function sessionCookieOptions(env: Env): {
+  path: string;
+  httpOnly: boolean;
+  sameSite: "lax" | "none";
+  secure: boolean;
+} {
+  // Cross-origin UI (e.g. Vercel) + API (e.g. Render) needs SameSite=None; Secure.
+  // Same-origin / __Host- cookies keep SameSite=Lax.
+  const crossSite =
+    env.NODE_ENV === "production" &&
+    !env.AUTH_COOKIE_NAME.startsWith("__Host-");
+  const secure =
+    crossSite ||
+    env.NODE_ENV === "production" ||
+    env.AUTH_COOKIE_NAME.startsWith("__Host-");
+  return {
+    path: "/",
+    httpOnly: true,
+    sameSite: crossSite ? "none" : "lax",
+    secure,
+  };
+}
+
 export function setSessionCookie(
   reply: FastifyReply,
   env: Env,
   token: string,
   expiresAt: Date,
 ): void {
-  const secure =
-    env.NODE_ENV === "production" || env.AUTH_COOKIE_NAME.startsWith("__Host-");
   reply.setCookie(env.AUTH_COOKIE_NAME, token, {
-    path: "/",
-    httpOnly: true,
-    sameSite: "lax",
-    secure,
+    ...sessionCookieOptions(env),
     expires: expiresAt,
   });
 }
 
 export function clearSessionCookie(reply: FastifyReply, env: Env): void {
-  const secure =
-    env.NODE_ENV === "production" || env.AUTH_COOKIE_NAME.startsWith("__Host-");
-  reply.clearCookie(env.AUTH_COOKIE_NAME, {
-    path: "/",
-    httpOnly: true,
-    sameSite: "lax",
-    secure,
-  });
+  reply.clearCookie(env.AUTH_COOKIE_NAME, sessionCookieOptions(env));
 }
 
 export async function registerAuthMiddleware(

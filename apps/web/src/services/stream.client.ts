@@ -1,5 +1,5 @@
 import type { AgentEvent } from "@minimi/shared";
-import { getCsrfToken } from "./api.client.js";
+import { API_BASE, getCsrfToken } from "./api.client.js";
 
 export type SseHandlers = {
   onEvent: (event: AgentEvent) => void;
@@ -25,7 +25,7 @@ export async function consumeAgentSse(
     headers["x-csrf-token"] = csrf;
   }
 
-  const response = await fetch(path, {
+  const response = await fetch(`${API_BASE}${path}`, {
     method: "POST",
     credentials: "include",
     headers,

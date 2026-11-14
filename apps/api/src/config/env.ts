@@ -395,14 +395,25 @@ export function loadEnvironment(overrides: Record<string, string | undefined> = 
 
   const data = parsed.data;
 
-  // Render (and most PaaS) inject PORT; prefer it over API_PORT when set.
+  // Render / Railway / Fly inject PORT. Prefer it, and always bind 0.0.0.0
+  // (loopback-only binds are invisible to the platform port scanner).
   let apiPort = data.API_PORT;
+  let apiHost = data.API_HOST;
   const platformPort = process.env.PORT?.trim();
   if (platformPort) {
     const parsedPort = Number(platformPort);
     if (Number.isFinite(parsedPort) && parsedPort > 0) {
       apiPort = parsedPort;
     }
+    apiHost = "0.0.0.0";
+  } else if (
+    data.NODE_ENV === "production" &&
+    (apiHost === "127.0.0.1" || apiHost === "localhost")
+  ) {
+    console.warn(
+      `[env] API_HOST=${apiHost} is not reachable on PaaS; binding 0.0.0.0 instead.`,
+    );
+    apiHost = "0.0.0.0";
   }
 
   if (data.DATABASE_PATH && !data.DATABASE_URL) {
@@ -436,6 +447,7 @@ export function loadEnvironment(overrides: Record<string, string | undefined> = 
 
   return {
     ...data,
+    API_HOST: apiHost,
     API_PORT: apiPort,
     ROOT_DIR: rootDir,
   };
