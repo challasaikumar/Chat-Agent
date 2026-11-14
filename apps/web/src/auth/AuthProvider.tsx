@@ -58,6 +58,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearChatSessionKeys();
     setUser(result.user);
     setMode("session");
+    // Confirm the session cookie is actually accepted cross-origin.
+    const session = await authApi.fetchSession();
+    if (!session.authenticated || !session.user) {
+      setUser(null);
+      setMode(null);
+      throw new ApiError(
+        "Signed in on the server, but the browser blocked the session cookie. Use AUTH_COOKIE_NAME=minimi_session on the API and allow third-party cookies, or host UI and API on the same site.",
+        401,
+        "SESSION_COOKIE_BLOCKED",
+      );
+    }
+    setUser(session.user);
+    if (session.mode !== "local_dev") {
+      await authApi.fetchCsrf();
+    }
   }, [clearChatSessionKeys]);
 
   const logout = useCallback(async () => {

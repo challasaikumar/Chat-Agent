@@ -56,21 +56,20 @@ function sessionCookieOptions(env: Env): {
   httpOnly: boolean;
   sameSite: "lax" | "none";
   secure: boolean;
+  partitioned?: boolean;
 } {
-  // Cross-origin UI (e.g. Vercel) + API (e.g. Render) needs SameSite=None; Secure.
-  // Same-origin / __Host- cookies keep SameSite=Lax.
-  const crossSite =
-    env.NODE_ENV === "production" &&
-    !env.AUTH_COOKIE_NAME.startsWith("__Host-");
-  const secure =
-    crossSite ||
-    env.NODE_ENV === "production" ||
-    env.AUTH_COOKIE_NAME.startsWith("__Host-");
+  // __Host- cookies are same-origin only and force SameSite=Lax — unusable when
+  // the UI is on Vercel and the API is on Render. Prefer a normal cookie name.
+  const hostPrefixed = env.AUTH_COOKIE_NAME.startsWith("__Host-");
+  const crossSite = env.NODE_ENV === "production" && !hostPrefixed;
   return {
     path: "/",
     httpOnly: true,
+    // Third-party (cross-site) credentialed fetches need None + Secure.
+    // Partitioned (CHIPS) keeps the cookie allowed under browser 3P restrictions.
     sameSite: crossSite ? "none" : "lax",
-    secure,
+    secure: crossSite || env.NODE_ENV === "production" || hostPrefixed,
+    ...(crossSite ? { partitioned: true } : {}),
   };
 }
 
@@ -100,10 +99,16 @@ export async function registerAuthMiddleware(
   app.addHook("onRequest", async (request, reply) => {
     const path = request.url.split("?")[0] ?? request.url;
 
-    // Origin allowlist for credentialed browser requests
+    // Origin allowlist for credentialed browser requests.
+    // Skip OPTIONS so @fastify/cors can answer preflight with the right headers.
     const origin = request.headers.origin;
-    if (origin && typeof origin === "string") {
-      if (!app.env.APP_ALLOWED_ORIGINS.includes(origin)) {
+    if (
+      origin &&
+      typeof origin === "string" &&
+      request.method !== "OPTIONS"
+    ) {
+      const normalizedOrigin = origin.replace(/\/$/, "");
+      if (!app.env.APP_ALLOWED_ORIGINS.includes(normalizedOrigin)) {
         if (!isPublicPath(path) || request.method !== "GET") {
           throw new AppError("Origin not allowed", {
             statusCode: 403,

@@ -363,7 +363,7 @@ const envSchema = z.object({
     .transform((value) =>
       value
         .split(",")
-        .map((item) => item.trim())
+        .map((item) => item.trim().replace(/\/$/, ""))
         .filter(Boolean),
     ),
   AUTH_PASSWORD_MIN_LENGTH: z.coerce.number().int().min(8).default(12),
@@ -441,6 +441,11 @@ export function loadEnvironment(overrides: Record<string, string | undefined> = 
     if (data.APP_ALLOWED_ORIGINS.some((origin) => origin === "*")) {
       throw new Error(
         "Invalid environment configuration: wildcard CORS origins are not allowed in production",
+      );
+    }
+    if (data.AUTH_COOKIE_NAME.startsWith("__Host-")) {
+      console.warn(
+        "[env] AUTH_COOKIE_NAME uses __Host- which breaks cross-origin (Vercel→Render) sessions. Use AUTH_COOKIE_NAME=minimi_session.",
       );
     }
   }

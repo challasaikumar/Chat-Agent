@@ -17,6 +17,8 @@ export async function registerSecurityHeaders(
         baseUri: ["'self'"],
       },
     },
+    // Allow browser fetches from a separate frontend origin (Vercel → Render).
+    crossOriginResourcePolicy: { policy: "cross-origin" },
     crossOriginEmbedderPolicy: false,
     referrerPolicy: { policy: "no-referrer" },
     hsts:

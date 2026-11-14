@@ -33,6 +33,7 @@ services:
       # Set these in the Render dashboard (secrets / per-environment):
       - key: DATABASE_URL
         sync: false
+      # Must match the Vercel URL exactly, e.g. https://chat-agent-2vuq.vercel.app
       - key: APP_ALLOWED_ORIGINS
         sync: false
       - key: OPENAI_API_KEY
