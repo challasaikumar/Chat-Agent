@@ -18,6 +18,7 @@ export async function registerCors(app: FastifyInstance): Promise<void> {
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: [
       "content-type",
+      "authorization",
       "x-csrf-token",
       "x-request-id",
       app.env.AUTH_CSRF_HEADER,

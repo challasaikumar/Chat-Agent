@@ -41,6 +41,18 @@ function isSafeMethod(method: string): boolean {
   return method === "GET" || method === "HEAD" || method === "OPTIONS";
 }
 
+function extractBearerToken(
+  authorization: string | string[] | undefined,
+): string | undefined {
+  const header = Array.isArray(authorization)
+    ? authorization[0]
+    : authorization;
+  if (!header || typeof header !== "string") return undefined;
+  const match = /^Bearer\s+(.+)$/i.exec(header.trim());
+  const token = match?.[1]?.trim();
+  return token || undefined;
+}
+
 export function getRequestUserId(request: FastifyRequest): string {
   if (!request.auth?.user) {
     throw new AppError("Authentication required", {
@@ -135,8 +147,14 @@ export async function registerAuthMiddleware(
       return;
     }
 
+    // Prefer Authorization Bearer (cross-origin UIs where cookies are blocked),
+    // then fall back to the httpOnly session cookie (same-origin / local).
+    const bearerToken = extractBearerToken(request.headers.authorization);
     const rawCookie = request.cookies?.[app.env.AUTH_COOKIE_NAME];
-    const validated = await authService.sessions.validateSessionToken(rawCookie);
+    const validated = await authService.sessions.validateSessionToken(
+      bearerToken ?? rawCookie,
+    );
+    const authenticatedViaBearer = Boolean(bearerToken && validated);
 
     if (validated) {
       request.auth = {
@@ -165,8 +183,13 @@ export async function registerAuthMiddleware(
       });
     }
 
-    // CSRF for state-changing authenticated requests in session mode
-    if (!isSafeMethod(request.method) && request.auth.session) {
+    // CSRF protects cookie-based sessions. Bearer tokens are not sent
+    // automatically by the browser, so CSRF is not required for them.
+    if (
+      !isSafeMethod(request.method) &&
+      request.auth.session &&
+      !authenticatedViaBearer
+    ) {
       const headerName = app.env.AUTH_CSRF_HEADER.toLowerCase();
       const csrfHeader = request.headers[headerName];
       const csrfToken = Array.isArray(csrfHeader)

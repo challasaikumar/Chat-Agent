@@ -1,5 +1,5 @@
 import type { AgentEvent } from "@minimi/shared";
-import { API_BASE, getCsrfToken } from "./api.client.js";
+import { API_BASE, getCsrfToken, getSessionToken } from "./api.client.js";
 
 export type SseHandlers = {
   onEvent: (event: AgentEvent) => void;
@@ -20,6 +20,10 @@ export async function consumeAgentSse(
     "content-type": "application/json",
     accept: "text/event-stream",
   };
+  const bearer = getSessionToken();
+  if (bearer) {
+    headers.authorization = `Bearer ${bearer}`;
+  }
   const csrf = getCsrfToken();
   if (csrf) {
     headers["x-csrf-token"] = csrf;

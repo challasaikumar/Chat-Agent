@@ -1,4 +1,8 @@
-import { apiRequest, setCsrfToken } from "../services/api.client.js";
+import {
+  apiRequest,
+  setCsrfToken,
+  setSessionToken,
+} from "../services/api.client.js";
 import type { AuthUser, SessionResponse } from "./auth.types.js";
 
 export async function fetchSession(): Promise<SessionResponse> {
@@ -14,22 +18,28 @@ export async function fetchCsrf(): Promise<string | null> {
 export async function login(
   email: string,
   password: string,
-): Promise<{ user: AuthUser; csrfToken: string }> {
-  const data = await apiRequest<{ user: AuthUser; csrfToken: string }>(
-    "/api/auth/login",
-    {
-      method: "POST",
-      body: JSON.stringify({ email, password }),
-    },
-  );
+): Promise<{ user: AuthUser; csrfToken: string; sessionToken: string }> {
+  const data = await apiRequest<{
+    user: AuthUser;
+    csrfToken: string;
+    sessionToken: string;
+  }>("/api/auth/login", {
+    method: "POST",
+    body: JSON.stringify({ email, password }),
+  });
+  setSessionToken(data.sessionToken);
   setCsrfToken(data.csrfToken);
   return data;
 }
 
 export async function logout(): Promise<void> {
-  await apiRequest<{ loggedOut: boolean }>("/api/auth/logout", {
-    method: "POST",
-    body: JSON.stringify({}),
-  });
-  setCsrfToken(null);
+  try {
+    await apiRequest<{ loggedOut: boolean }>("/api/auth/logout", {
+      method: "POST",
+      body: JSON.stringify({}),
+    });
+  } finally {
+    setSessionToken(null);
+    setCsrfToken(null);
+  }
 }

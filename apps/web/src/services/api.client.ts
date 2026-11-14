@@ -5,7 +5,18 @@ export const API_BASE = (
   import.meta.env.VITE_API_BASE_URL as string | undefined
 )?.replace(/\/$/, "") ?? "";
 
+const SESSION_TOKEN_KEY = "minimi.sessionToken";
+
 let csrfToken: string | null = null;
+let sessionToken: string | null = readStoredSessionToken();
+
+function readStoredSessionToken(): string | null {
+  try {
+    return sessionStorage.getItem(SESSION_TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
 
 export function setCsrfToken(token: string | null): void {
   csrfToken = token;
@@ -13,6 +24,23 @@ export function setCsrfToken(token: string | null): void {
 
 export function getCsrfToken(): string | null {
   return csrfToken;
+}
+
+export function setSessionToken(token: string | null): void {
+  sessionToken = token;
+  try {
+    if (token) {
+      sessionStorage.setItem(SESSION_TOKEN_KEY, token);
+    } else {
+      sessionStorage.removeItem(SESSION_TOKEN_KEY);
+    }
+  } catch {
+    // ignore storage failures (private mode, etc.)
+  }
+}
+
+export function getSessionToken(): string | null {
+  return sessionToken ?? readStoredSessionToken();
 }
 
 export class ApiError extends Error {
@@ -42,6 +70,11 @@ export async function apiRequest<T>(
     headers["content-type"] = "application/json";
   }
 
+  const bearer = getSessionToken();
+  if (bearer && !headers.authorization && !headers.Authorization) {
+    headers.authorization = `Bearer ${bearer}`;
+  }
+
   if (
     csrfToken &&
     method !== "GET" &&
@@ -67,6 +100,10 @@ export async function apiRequest<T>(
 
   if (!response.ok || !body || body.success === false) {
     const errorBody = body && body.success === false ? body.error : null;
+    if (response.status === 401) {
+      setSessionToken(null);
+      setCsrfToken(null);
+    }
     throw new ApiError(
       errorBody?.message ?? `Request failed (${response.status})`,
       response.status,

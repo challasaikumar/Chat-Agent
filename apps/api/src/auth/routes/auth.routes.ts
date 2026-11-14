@@ -47,6 +47,8 @@ export async function authRoutes(app: FastifyInstance): Promise<void> {
     return ok({
       user: serializeDates(result.user),
       csrfToken: result.tokens.csrfToken,
+      // Returned for cross-origin clients (Vercel→Render) that cannot rely on cookies.
+      sessionToken: result.tokens.sessionToken,
       expiresAt: result.tokens.expiresAt.toISOString(),
     });
   });

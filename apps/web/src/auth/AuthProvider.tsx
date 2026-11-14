@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react
 import { AuthContext } from "./AuthContext.js";
 import * as authApi from "./auth.api.js";
 import type { AuthUser } from "./auth.types.js";
-import { ApiError } from "../services/api.client.js";
+import { ApiError, setSessionToken } from "../services/api.client.js";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -15,12 +15,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null);
     try {
       const session = await authApi.fetchSession();
+      if (!session.authenticated) {
+        setSessionToken(null);
+        setUser(null);
+        setMode(null);
+        return;
+      }
       setUser(session.user);
-      setMode(session.mode ?? (session.authenticated ? "session" : null));
-      if (session.authenticated && session.mode !== "local_dev") {
+      setMode(session.mode ?? "session");
+      if (session.mode !== "local_dev") {
         await authApi.fetchCsrf();
       }
     } catch (err) {
+      setSessionToken(null);
       setUser(null);
       setMode(null);
       setError(err instanceof ApiError ? err.message : "Session check failed");
@@ -58,15 +65,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearChatSessionKeys();
     setUser(result.user);
     setMode("session");
-    // Confirm the session cookie is actually accepted cross-origin.
+    // Bearer sessionToken is stored by authApi.login; verify it works cross-origin.
     const session = await authApi.fetchSession();
     if (!session.authenticated || !session.user) {
       setUser(null);
       setMode(null);
       throw new ApiError(
-        "Signed in on the server, but the browser blocked the session cookie. Use AUTH_COOKIE_NAME=minimi_session on the API and allow third-party cookies, or host UI and API on the same site.",
+        "Login succeeded but session could not be restored. Try again.",
         401,
-        "SESSION_COOKIE_BLOCKED",
+        "SESSION_RESTORE_FAILED",
       );
     }
     setUser(session.user);
