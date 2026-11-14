@@ -190,12 +190,13 @@ export async function registerAuthMiddleware(
       });
     }
 
-    // CSRF protects cookie-based sessions. Bearer tokens are not sent
-    // automatically by the browser, so CSRF is not required for them.
+    // CSRF protects cookie-only sessions. Explicit session headers
+    // (Authorization Bearer / x-minimi-session) are not auto-sent by browsers.
     if (
       !isSafeMethod(request.method) &&
       request.auth.session &&
-      !authenticatedViaBearer
+      !authenticatedViaBearer &&
+      !firstHeader(request.headers["x-minimi-session"])
     ) {
       const headerName = app.env.AUTH_CSRF_HEADER.toLowerCase();
       const csrfHeader = request.headers[headerName];

@@ -1,14 +1,16 @@
 import type { ApiResponse } from "@minimi/shared";
 
-/** Empty in local/dev (Vite proxies /api). Set to Render API origin in Vercel. */
+/** Empty in local/dev (Vite proxies /api). Same-origin on Vercel via rewrite. */
 export const API_BASE = (
   import.meta.env.VITE_API_BASE_URL as string | undefined
 )?.replace(/\/$/, "") ?? "";
 
 const SESSION_TOKEN_KEY = "minimi.sessionToken";
+const CSRF_TOKEN_KEY = "minimi.csrfToken";
 
-let csrfToken: string | null = null;
+let csrfToken: string | null = readStoredCsrfToken();
 let sessionToken: string | null = readStoredSessionToken();
+let csrfFetchInFlight: Promise<string | null> | null = null;
 
 function readStoredSessionToken(): string | null {
   try {
@@ -21,11 +23,36 @@ function readStoredSessionToken(): string | null {
   }
 }
 
+function readStoredCsrfToken(): string | null {
+  try {
+    return (
+      localStorage.getItem(CSRF_TOKEN_KEY) ??
+      sessionStorage.getItem(CSRF_TOKEN_KEY)
+    );
+  } catch {
+    return null;
+  }
+}
+
 export function setCsrfToken(token: string | null): void {
-  csrfToken = token;
+  csrfToken = token && token.trim() ? token.trim() : null;
+  try {
+    if (csrfToken) {
+      localStorage.setItem(CSRF_TOKEN_KEY, csrfToken);
+      sessionStorage.setItem(CSRF_TOKEN_KEY, csrfToken);
+    } else {
+      localStorage.removeItem(CSRF_TOKEN_KEY);
+      sessionStorage.removeItem(CSRF_TOKEN_KEY);
+    }
+  } catch {
+    // ignore storage failures
+  }
 }
 
 export function getCsrfToken(): string | null {
+  if (csrfToken) return csrfToken;
+  const stored = readStoredCsrfToken();
+  if (stored) csrfToken = stored;
   return csrfToken;
 }
 
@@ -40,16 +67,14 @@ export function setSessionToken(token: string | null): void {
       sessionStorage.removeItem(SESSION_TOKEN_KEY);
     }
   } catch {
-    // ignore storage failures (private mode, etc.)
+    // ignore storage failures
   }
 }
 
 export function getSessionToken(): string | null {
   if (sessionToken) return sessionToken;
   const stored = readStoredSessionToken();
-  if (stored) {
-    sessionToken = stored;
-  }
+  if (stored) sessionToken = stored;
   return sessionToken;
 }
 
@@ -65,9 +90,51 @@ export class ApiError extends Error {
   }
 }
 
+async function refreshCsrfFromApi(): Promise<string | null> {
+  if (csrfFetchInFlight) return csrfFetchInFlight;
+
+  csrfFetchInFlight = (async () => {
+    try {
+      const bearer = getSessionToken();
+      const headers: Record<string, string> = {};
+      if (bearer) {
+        headers.authorization = `Bearer ${bearer}`;
+        headers["x-minimi-session"] = bearer;
+      }
+      const response = await fetch(`${API_BASE}/api/auth/csrf`, {
+        method: "GET",
+        credentials: "include",
+        headers,
+      });
+      const body = (await response.json()) as ApiResponse<{
+        csrfToken: string | null;
+      }>;
+      if (response.ok && body.success) {
+        setCsrfToken(body.data.csrfToken);
+        return body.data.csrfToken;
+      }
+      return null;
+    } catch {
+      return null;
+    } finally {
+      csrfFetchInFlight = null;
+    }
+  })();
+
+  return csrfFetchInFlight;
+}
+
+export async function ensureCsrfToken(): Promise<string | null> {
+  const existing = getCsrfToken();
+  if (existing) return existing;
+  return refreshCsrfFromApi();
+}
+
+type ApiRequestOptions = RequestInit & { csrfRetry?: boolean };
+
 export async function apiRequest<T>(
   path: string,
-  init: RequestInit = {},
+  init: ApiRequestOptions = {},
 ): Promise<T> {
   const method = (init.method ?? "GET").toUpperCase();
   const hasBody = init.body !== undefined && init.body !== null;
@@ -75,7 +142,6 @@ export async function apiRequest<T>(
     ...(init.headers as Record<string, string> | undefined),
   };
 
-  // Fastify rejects empty bodies when content-type is application/json.
   if (hasBody && !headers["content-type"] && !headers["Content-Type"]) {
     headers["content-type"] = "application/json";
   }
@@ -90,13 +156,12 @@ export async function apiRequest<T>(
     }
   }
 
-  if (
-    csrfToken &&
-    method !== "GET" &&
-    method !== "HEAD" &&
-    method !== "OPTIONS"
-  ) {
-    headers["x-csrf-token"] = csrfToken;
+  const needsCsrf =
+    method !== "GET" && method !== "HEAD" && method !== "OPTIONS";
+
+  if (needsCsrf) {
+    const token = await ensureCsrfToken();
+    if (token) headers["x-csrf-token"] = token;
   }
 
   const response = await fetch(`${API_BASE}${path}`, {
@@ -115,7 +180,18 @@ export async function apiRequest<T>(
 
   if (!response.ok || !body || body.success === false) {
     const errorBody = body && body.success === false ? body.error : null;
-    // Only clear auth on explicit unauthorized — not on network/CORS failures.
+
+    if (
+      needsCsrf &&
+      !init.csrfRetry &&
+      response.status === 403 &&
+      errorBody?.code === "CSRF_REJECTED"
+    ) {
+      setCsrfToken(null);
+      await refreshCsrfFromApi();
+      return apiRequest<T>(path, { ...init, csrfRetry: true });
+    }
+
     if (
       response.status === 401 &&
       errorBody?.code !== "AUTH_FAILED" &&

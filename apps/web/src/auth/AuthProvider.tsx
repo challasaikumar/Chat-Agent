@@ -69,24 +69,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const result = await authApi.login(email, password);
         clearChatSessionKeys();
 
-        // Token is already stored. Confirm via /session when possible; otherwise
-        // admit the login payload so a flaky public session read cannot block entry.
+        // Token + CSRF from login are already persisted. Confirm session, then
+        // always refresh CSRF so cookie-authenticated POSTs succeed.
         try {
           const session = await authApi.fetchSession();
           if (session.authenticated && session.user) {
             setUser(session.user);
             setMode(session.mode ?? "session");
-            if (session.mode !== "local_dev") {
-              await authApi.fetchCsrf();
-            }
-            return;
+          } else {
+            setUser(result.user);
+            setMode("session");
           }
         } catch {
-          // Fall through — Bearer/x-minimi-session will authenticate API calls.
+          setUser(result.user);
+          setMode("session");
         }
 
-        setUser(result.user);
-        setMode("session");
+        try {
+          await authApi.fetchCsrf();
+        } catch {
+          // Cookie/Bearer may still work for GETs; mutating calls will retry CSRF.
+        }
       } finally {
         setSigningIn(false);
       }
