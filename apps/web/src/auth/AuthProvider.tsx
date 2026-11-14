@@ -77,7 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setError(null);
       setSigningIn(true);
       try {
-        const result = await authApi.login(email, password);
+        await authApi.login(email, password);
         clearChatSessionKeys();
 
         // Verify Bearer auth before exposing a logged-in UI (avoids bounce).
@@ -98,7 +98,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (session.mode !== "local_dev") {
           await authApi.fetchCsrf();
         }
-        return result;
       } finally {
         setSigningIn(false);
       }
