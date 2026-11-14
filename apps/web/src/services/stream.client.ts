@@ -23,6 +23,7 @@ export async function consumeAgentSse(
   const bearer = getSessionToken();
   if (bearer) {
     headers.authorization = `Bearer ${bearer}`;
+    headers["x-minimi-session"] = bearer;
   }
   const csrf = getCsrfToken();
   if (csrf) {

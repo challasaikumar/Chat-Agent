@@ -42,17 +42,23 @@ function isSafeMethod(method: string): boolean {
   return method === "GET" || method === "HEAD" || method === "OPTIONS";
 }
 
+function firstHeader(
+  value: string | string[] | undefined,
+): string | undefined {
+  if (Array.isArray(value)) return value[0];
+  return typeof value === "string" ? value : undefined;
+}
+
 function extractBearerToken(
   authorization: string | string[] | undefined,
 ): string | undefined {
-  const header = Array.isArray(authorization)
-    ? authorization[0]
-    : authorization;
-  if (!header || typeof header !== "string") return undefined;
+  const header = firstHeader(authorization);
+  if (!header) return undefined;
   const match = /^Bearer\s+(.+)$/i.exec(header.trim());
   const token = match?.[1]?.trim();
   return token || undefined;
 }
+
 
 export function getRequestUserId(request: FastifyRequest): string {
   if (!request.auth?.user) {
@@ -147,14 +153,15 @@ export async function registerAuthMiddleware(
       return;
     }
 
-    // Prefer Authorization Bearer (cross-origin UIs where cookies are blocked),
-    // then fall back to the httpOnly session cookie (same-origin / local).
-    const bearerToken = extractBearerToken(request.headers.authorization);
+    // Prefer explicit session tokens (cross-origin), then httpOnly cookie.
+    const headerToken =
+      extractBearerToken(request.headers.authorization) ??
+      firstHeader(request.headers["x-minimi-session"])?.trim();
     const rawCookie = request.cookies?.[app.env.AUTH_COOKIE_NAME];
     const validated = await authService.sessions.validateSessionToken(
-      bearerToken ?? rawCookie,
+      headerToken || rawCookie,
     );
-    const authenticatedViaBearer = Boolean(bearerToken && validated);
+    const authenticatedViaBearer = Boolean(headerToken && validated);
 
     if (validated) {
       request.auth = {

@@ -81,8 +81,13 @@ export async function apiRequest<T>(
   }
 
   const bearer = getSessionToken();
-  if (bearer && !headers.authorization && !headers.Authorization) {
-    headers.authorization = `Bearer ${bearer}`;
+  if (bearer) {
+    if (!headers.authorization && !headers.Authorization) {
+      headers.authorization = `Bearer ${bearer}`;
+    }
+    if (!headers["x-minimi-session"]) {
+      headers["x-minimi-session"] = bearer;
+    }
   }
 
   if (

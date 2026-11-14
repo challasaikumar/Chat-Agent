@@ -1,5 +1,6 @@
 import {
   apiRequest,
+  getSessionToken,
   setCsrfToken,
   setSessionToken,
 } from "../services/api.client.js";
@@ -30,12 +31,20 @@ export async function login(
 
   if (!data.sessionToken) {
     throw new Error(
-      "API did not return sessionToken. Redeploy the Render backend to the latest main branch.",
+      "API did not return sessionToken. Redeploy the Render backend from latest main.",
     );
   }
 
   setSessionToken(data.sessionToken);
   setCsrfToken(data.csrfToken);
+
+  // Confirm the token is readable before continuing.
+  if (!getSessionToken()) {
+    throw new Error(
+      "Could not persist session token in the browser (storage blocked).",
+    );
+  }
+
   return {
     user: data.user,
     csrfToken: data.csrfToken,

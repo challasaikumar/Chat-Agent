@@ -17,6 +17,7 @@ export async function registerCors(app: FastifyInstance): Promise<void> {
     allowedHeaders: [
       "content-type",
       "authorization",
+      "x-minimi-session",
       "x-csrf-token",
       "x-request-id",
       app.env.AUTH_CSRF_HEADER,

@@ -15,22 +15,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     setError(null);
     try {
-      // No stored token and no cookie → unauthenticated (skip useless 401 noise).
-      if (!getSessionToken()) {
-        const session = await authApi.fetchSession();
-        if (!session.authenticated || !session.user) {
-          setUser(null);
-          setMode(null);
-          return;
-        }
-        setUser(session.user);
-        setMode(session.mode ?? "session");
-        return;
-      }
-
       const session = await authApi.fetchSession();
       if (!session.authenticated || !session.user) {
-        setSessionToken(null);
+        if (getSessionToken()) {
+          setSessionToken(null);
+        }
         setUser(null);
         setMode(null);
         return;
@@ -77,27 +66,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setError(null);
       setSigningIn(true);
       try {
-        await authApi.login(email, password);
+        const result = await authApi.login(email, password);
         clearChatSessionKeys();
 
-        // Verify Bearer auth before exposing a logged-in UI (avoids bounce).
-        const session = await authApi.fetchSession();
-        if (!session.authenticated || !session.user) {
-          setSessionToken(null);
-          setUser(null);
-          setMode(null);
-          throw new ApiError(
-            "Login succeeded but session could not be restored. Redeploy the API and try again.",
-            401,
-            "SESSION_RESTORE_FAILED",
-          );
+        // Token is already stored. Confirm via /session when possible; otherwise
+        // admit the login payload so a flaky public session read cannot block entry.
+        try {
+          const session = await authApi.fetchSession();
+          if (session.authenticated && session.user) {
+            setUser(session.user);
+            setMode(session.mode ?? "session");
+            if (session.mode !== "local_dev") {
+              await authApi.fetchCsrf();
+            }
+            return;
+          }
+        } catch {
+          // Fall through — Bearer/x-minimi-session will authenticate API calls.
         }
 
-        setUser(session.user);
-        setMode(session.mode ?? "session");
-        if (session.mode !== "local_dev") {
-          await authApi.fetchCsrf();
-        }
+        setUser(result.user);
+        setMode("session");
       } finally {
         setSigningIn(false);
       }

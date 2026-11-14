@@ -81,18 +81,20 @@ Deploy only `apps/web` (Vite). The API stays on Render/VPS.
 
 | Variable | Value |
 | --- | --- |
-| `VITE_API_BASE_URL` | `https://YOUR-API.onrender.com` (no trailing slash) |
+| `VITE_API_BASE_URL` | **Leave unset / delete** — `vercel.json` proxies `/api` → Render (same-origin; cookies work) |
 | `VITE_APP_NAME` | `Minimi` (optional) |
+
+If you previously set `VITE_API_BASE_URL` to the Render URL, **remove it** and redeploy Vercel. Pointing the browser directly at Render causes CORS/cookie issues.
 
 5. Deploy. Note the URL, e.g. `https://chat-agent.vercel.app`.
 6. On the **API** (Render), set:
 
 ```env
-APP_ALLOWED_ORIGINS=https://chat-agent.vercel.app
+APP_ALLOWED_ORIGINS=https://*.vercel.app
 AUTH_COOKIE_NAME=minimi_session
 ```
 
-Redeploy or restart the API after changing env. Production cookies use `SameSite=None; Secure` when not using `__Host-`, so login works cross-origin.
+Redeploy the API after changing env. Auth uses Bearer/`x-minimi-session` tokens plus cookies when same-origin.
 
 CLI alternative from repo root:
 
