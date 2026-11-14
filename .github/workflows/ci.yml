@@ -8,12 +8,38 @@ on:
 jobs:
   build-test-eval:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: minimi_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d minimi_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      NODE_ENV: test
+      AUTH_MODE: local_dev
+      # Disposable DB for Vitest + deterministic evals (must differ from DATABASE_URL).
+      DATABASE_URL_TEST: postgresql://postgres:postgres@127.0.0.1:5432/minimi_test
+      DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:5432/minimi_ci
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
           cache: npm
+      - name: Create CI app database
+        run: |
+          PGPASSWORD=postgres psql -h 127.0.0.1 -U postgres -d minimi_test \
+            -c "SELECT 1" >/dev/null
+          PGPASSWORD=postgres psql -h 127.0.0.1 -U postgres -d postgres \
+            -c "CREATE DATABASE minimi_ci;"
       - run: npm ci
       - run: npm run typecheck
       - run: npm test
@@ -22,13 +48,9 @@ jobs:
           EVAL_ENABLED: "true"
           EVAL_LIVE_ENABLED: "false"
           EVAL_LLM_JUDGE_ENABLED: "false"
-          NODE_ENV: test
-          AUTH_MODE: local_dev
         run: npm run eval
       - run: npm run build
       - name: Performance smoke (mocked)
-        env:
-          NODE_ENV: test
         run: npm run perf:smoke
       - name: Upload evaluation reports
         if: always()
