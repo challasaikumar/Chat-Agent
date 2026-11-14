@@ -113,7 +113,7 @@ The API is a long-running Node web service. Use [render.yaml](../render.yaml).
 | Variable | Value |
 | --- | --- |
 | `DATABASE_URL` | Supabase Postgres URI (Session mode / port 5432 preferred) |
-| `APP_ALLOWED_ORIGINS` | Frontend origin(s), comma-separated, e.g. `https://your-app.vercel.app` |
+| `APP_ALLOWED_ORIGINS` | Frontend origin(s). Prefer `https://*.vercel.app` so URL changes keep working |
 | `OPENAI_API_KEY` or `OPENROUTER_API_KEY` | LLM key |
 | `OPENAI_BASE_URL` / `OPENAI_MODEL` | If using OpenRouter |
 | `TAVILY_API_KEY` | Web search |

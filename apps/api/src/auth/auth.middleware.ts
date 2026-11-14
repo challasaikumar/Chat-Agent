@@ -4,6 +4,7 @@ import type { User } from "../db/schema.js";
 import { AppError } from "../utils/errors.js";
 import type { AuthService } from "./auth.service.js";
 import type { AuthSession } from "../db/schema.js";
+import { isOriginAllowed } from "../security/origin-allowlist.js";
 
 export type AuthContext = {
   user: User;
@@ -119,8 +120,7 @@ export async function registerAuthMiddleware(
       typeof origin === "string" &&
       request.method !== "OPTIONS"
     ) {
-      const normalizedOrigin = origin.replace(/\/$/, "");
-      if (!app.env.APP_ALLOWED_ORIGINS.includes(normalizedOrigin)) {
+      if (!isOriginAllowed(origin, app.env.APP_ALLOWED_ORIGINS)) {
         if (!isPublicPath(path) || request.method !== "GET") {
           throw new AppError("Origin not allowed", {
             statusCode: 403,

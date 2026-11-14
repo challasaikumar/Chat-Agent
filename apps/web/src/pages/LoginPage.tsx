@@ -11,7 +11,7 @@ export function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  if (!auth.loading && auth.user) {
+  if (!auth.loading && !submitting && auth.user) {
     // Always land on a clean chat home after auth — never reopen another
     // account's /chat/:id from a deep link or prior session.
     return <Navigate to="/" replace />;
@@ -26,7 +26,9 @@ export function LoginPage() {
       navigate("/", { replace: true });
     } catch (err) {
       setError(
-        err instanceof ApiError ? err.message : "Unable to sign in",
+        err instanceof ApiError || err instanceof Error
+          ? err.message
+          : "Unable to sign in",
       );
     } finally {
       setSubmitting(false);

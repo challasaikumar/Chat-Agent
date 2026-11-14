@@ -12,7 +12,10 @@ let sessionToken: string | null = readStoredSessionToken();
 
 function readStoredSessionToken(): string | null {
   try {
-    return sessionStorage.getItem(SESSION_TOKEN_KEY);
+    return (
+      localStorage.getItem(SESSION_TOKEN_KEY) ??
+      sessionStorage.getItem(SESSION_TOKEN_KEY)
+    );
   } catch {
     return null;
   }
@@ -27,11 +30,13 @@ export function getCsrfToken(): string | null {
 }
 
 export function setSessionToken(token: string | null): void {
-  sessionToken = token;
+  sessionToken = token && token.trim() ? token.trim() : null;
   try {
-    if (token) {
-      sessionStorage.setItem(SESSION_TOKEN_KEY, token);
+    if (sessionToken) {
+      localStorage.setItem(SESSION_TOKEN_KEY, sessionToken);
+      sessionStorage.setItem(SESSION_TOKEN_KEY, sessionToken);
     } else {
+      localStorage.removeItem(SESSION_TOKEN_KEY);
       sessionStorage.removeItem(SESSION_TOKEN_KEY);
     }
   } catch {
@@ -40,7 +45,12 @@ export function setSessionToken(token: string | null): void {
 }
 
 export function getSessionToken(): string | null {
-  return sessionToken ?? readStoredSessionToken();
+  if (sessionToken) return sessionToken;
+  const stored = readStoredSessionToken();
+  if (stored) {
+    sessionToken = stored;
+  }
+  return sessionToken;
 }
 
 export class ApiError extends Error {
@@ -100,7 +110,12 @@ export async function apiRequest<T>(
 
   if (!response.ok || !body || body.success === false) {
     const errorBody = body && body.success === false ? body.error : null;
-    if (response.status === 401) {
+    // Only clear auth on explicit unauthorized — not on network/CORS failures.
+    if (
+      response.status === 401 &&
+      errorBody?.code !== "AUTH_FAILED" &&
+      path !== "/api/auth/login"
+    ) {
       setSessionToken(null);
       setCsrfToken(null);
     }

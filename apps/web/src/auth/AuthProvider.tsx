@@ -2,20 +2,34 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react
 import { AuthContext } from "./AuthContext.js";
 import * as authApi from "./auth.api.js";
 import type { AuthUser } from "./auth.types.js";
-import { ApiError, setSessionToken } from "../services/api.client.js";
+import { ApiError, getSessionToken, setSessionToken } from "../services/api.client.js";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [mode, setMode] = useState<"session" | "local_dev" | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [signingIn, setSigningIn] = useState(false);
 
   const refresh = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
+      // No stored token and no cookie → unauthenticated (skip useless 401 noise).
+      if (!getSessionToken()) {
+        const session = await authApi.fetchSession();
+        if (!session.authenticated || !session.user) {
+          setUser(null);
+          setMode(null);
+          return;
+        }
+        setUser(session.user);
+        setMode(session.mode ?? "session");
+        return;
+      }
+
       const session = await authApi.fetchSession();
-      if (!session.authenticated) {
+      if (!session.authenticated || !session.user) {
         setSessionToken(null);
         setUser(null);
         setMode(null);
@@ -58,29 +72,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const login = useCallback(async (email: string, password: string) => {
-    setError(null);
-    const result = await authApi.login(email, password);
-    // Switching accounts must not reuse another user's conversation ids.
-    clearChatSessionKeys();
-    setUser(result.user);
-    setMode("session");
-    // Bearer sessionToken is stored by authApi.login; verify it works cross-origin.
-    const session = await authApi.fetchSession();
-    if (!session.authenticated || !session.user) {
-      setUser(null);
-      setMode(null);
-      throw new ApiError(
-        "Login succeeded but session could not be restored. Try again.",
-        401,
-        "SESSION_RESTORE_FAILED",
-      );
-    }
-    setUser(session.user);
-    if (session.mode !== "local_dev") {
-      await authApi.fetchCsrf();
-    }
-  }, [clearChatSessionKeys]);
+  const login = useCallback(
+    async (email: string, password: string) => {
+      setError(null);
+      setSigningIn(true);
+      try {
+        const result = await authApi.login(email, password);
+        clearChatSessionKeys();
+
+        // Verify Bearer auth before exposing a logged-in UI (avoids bounce).
+        const session = await authApi.fetchSession();
+        if (!session.authenticated || !session.user) {
+          setSessionToken(null);
+          setUser(null);
+          setMode(null);
+          throw new ApiError(
+            "Login succeeded but session could not be restored. Redeploy the API and try again.",
+            401,
+            "SESSION_RESTORE_FAILED",
+          );
+        }
+
+        setUser(session.user);
+        setMode(session.mode ?? "session");
+        if (session.mode !== "local_dev") {
+          await authApi.fetchCsrf();
+        }
+        return result;
+      } finally {
+        setSigningIn(false);
+      }
+    },
+    [clearChatSessionKeys],
+  );
 
   const logout = useCallback(async () => {
     try {
@@ -93,8 +117,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [clearChatSessionKeys]);
 
   const value = useMemo(
-    () => ({ user, loading, mode, error, login, logout, refresh }),
-    [user, loading, mode, error, login, logout, refresh],
+    () => ({
+      user,
+      loading: loading || signingIn,
+      mode,
+      error,
+      login,
+      logout,
+      refresh,
+    }),
+    [user, loading, signingIn, mode, error, login, logout, refresh],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

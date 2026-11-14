@@ -22,14 +22,25 @@ export async function login(
   const data = await apiRequest<{
     user: AuthUser;
     csrfToken: string;
-    sessionToken: string;
+    sessionToken?: string;
   }>("/api/auth/login", {
     method: "POST",
     body: JSON.stringify({ email, password }),
   });
+
+  if (!data.sessionToken) {
+    throw new Error(
+      "API did not return sessionToken. Redeploy the Render backend to the latest main branch.",
+    );
+  }
+
   setSessionToken(data.sessionToken);
   setCsrfToken(data.csrfToken);
-  return data;
+  return {
+    user: data.user,
+    csrfToken: data.csrfToken,
+    sessionToken: data.sessionToken,
+  };
 }
 
 export async function logout(): Promise<void> {
