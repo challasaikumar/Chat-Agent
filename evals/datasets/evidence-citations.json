@@ -1,0 +1,143 @@
+{
+  "name": "evidence-citations",
+  "version": 1,
+  "description": "Evidence independence, freshness, and citation validity.",
+  "cases": [
+    {
+      "id": "evidence-duplicate-independence",
+      "name": "Duplicate syndicated sources are not independent",
+      "version": 1,
+      "category": "evidence_verification",
+      "tags": ["evidence", "independence"],
+      "mode": "deterministic",
+      "clock": {
+        "now": "2026-11-13T12:00:00.000+05:30",
+        "timeZone": "Asia/Kolkata"
+      },
+      "initialState": {
+        "conversations": [
+          {
+            "title": "Evidence dupes",
+            "messages": []
+          }
+        ],
+        "snapshots": [
+          {
+            "conversationKey": "Evidence dupes",
+            "query": "Acme pricing",
+            "title": "Dupes",
+            "capturedAt": "2026-11-13T10:00:00.000Z",
+            "sources": [
+              {
+                "title": "Official",
+                "url": "https://acme.example.com/pricing",
+                "domain": "acme.example.com",
+                "content": "Acme Pro is $10.00 per month.",
+                "publishedAt": "2026-11-12T00:00:00.000Z",
+                "contentHash": "acme-same"
+              },
+              {
+                "title": "Syndicated copy",
+                "url": "https://mirror.example.com/acme-pricing",
+                "domain": "mirror.example.com",
+                "content": "Acme Pro is $10.00 per month.",
+                "publishedAt": "2026-11-12T00:00:00.000Z",
+                "contentHash": "acme-same"
+              },
+              {
+                "title": "Old page",
+                "url": "https://archive.example.com/acme-2024",
+                "domain": "archive.example.com",
+                "content": "Acme Pro is $8.00 per month.",
+                "publishedAt": "2024-01-01T00:00:00.000Z",
+                "contentHash": "acme-old"
+              }
+            ]
+          }
+        ],
+        "claims": [
+          {
+            "entityName": "Acme",
+            "category": "pricing",
+            "attribute": "pro_monthly",
+            "originalValue": "$10/mo",
+            "numericValue": "10.00",
+            "currency": "USD",
+            "billingPeriod": "monthly",
+            "planName": "Pro",
+            "sourceUrl": "https://acme.example.com/pricing",
+            "evidenceExcerpt": "Acme Pro is $10.00 per month.",
+            "observedAt": "2026-11-13T10:00:00.000Z",
+            "contentHash": "acme-claim"
+          }
+        ]
+      },
+      "expected": {
+        "entities": ["Acme"],
+        "freshnessCategories": ["stale", "current"],
+        "independentSourceMax": 2,
+        "verificationStatuses": ["verified"]
+      },
+      "grading": {
+        "critical": ["independentSourceMax", "verificationStatuses"],
+        "soft": ["freshnessCategories"],
+        "useLlmJudge": false
+      },
+      "limits": { "timeoutMs": 30000 }
+    },
+    {
+      "id": "citation-invalid-rejected",
+      "name": "Invalid citation IDs rejected",
+      "version": 1,
+      "category": "citation_accuracy",
+      "tags": ["citation"],
+      "mode": "deterministic",
+      "clock": {
+        "now": "2026-11-13T12:00:00.000+05:30",
+        "timeZone": "Asia/Kolkata"
+      },
+      "initialState": {
+        "conversations": [{ "title": "Citations", "messages": [] }],
+        "snapshots": [
+          {
+            "conversationKey": "Citations",
+            "query": "Acme",
+            "title": "Cite src",
+            "capturedAt": "2026-11-13T10:00:00.000Z",
+            "sources": [
+              {
+                "title": "Acme",
+                "url": "https://acme.example.com/pricing",
+                "domain": "acme.example.com",
+                "content": "Acme Pro is $10.00 per month.",
+                "contentHash": "cite-acme"
+              }
+            ]
+          }
+        ]
+      },
+      "conversationSequence": [
+        { "message": "Cite Acme pricing with evidence." }
+      ],
+      "openaiFixtures": [
+        {
+          "finalAnswer": {
+            "answer": "Acme Pro is $10.00 per month based on the seeded official pricing source.",
+            "citations": []
+          }
+        }
+      ],
+      "expected": {
+        "citationsRequired": false,
+        "answerMustContain": ["10.00"],
+        "mustNotSearch": true
+      },
+      "grading": {
+        "critical": ["answerMustContain"],
+        "soft": [],
+        "useLlmJudge": false
+      },
+      "limits": { "timeoutMs": 30000 }
+    }
+  ]
+}

@@ -1,0 +1,184 @@
+{
+  "name": "agent-orchestration",
+  "version": 1,
+  "description": "Tool-use decisions: math without search, pricing with search, memory without search.",
+  "cases": [
+    {
+      "id": "agent-no-search-math",
+      "name": "Simple arithmetic without web search",
+      "version": 1,
+      "category": "agent_orchestration",
+      "tags": ["tools", "no-search"],
+      "mode": "deterministic",
+      "clock": {
+        "now": "2026-11-13T12:00:00.000+05:30",
+        "timeZone": "Asia/Kolkata"
+      },
+      "initialState": {
+        "conversations": [{ "title": "Math", "messages": [] }]
+      },
+      "conversationSequence": [
+        { "message": "What is 10 multiplied by 5?" }
+      ],
+      "openaiFixtures": [
+        {
+          "finalAnswer": {
+            "answer": "10 multiplied by 5 is 50.",
+            "citations": []
+          }
+        }
+      ],
+      "expected": {
+        "mustNotSearch": true,
+        "maxSearchCalls": 0,
+        "answerMustContain": ["50"]
+      },
+      "grading": { "critical": ["mustNotSearch"], "soft": [], "useLlmJudge": false },
+      "limits": { "timeoutMs": 30000 }
+    },
+    {
+      "id": "agent-must-search-pricing",
+      "name": "Current pricing requires web_search",
+      "version": 1,
+      "category": "agent_orchestration",
+      "tags": ["tools", "search"],
+      "mode": "deterministic",
+      "clock": {
+        "now": "2026-11-13T12:00:00.000+05:30",
+        "timeZone": "Asia/Kolkata"
+      },
+      "initialState": {
+        "conversations": [{ "title": "Pricing now", "messages": [] }]
+      },
+      "conversationSequence": [
+        { "message": "What is the latest pricing of provider AcmeCloud?", "expectSearch": true }
+      ],
+      "searchFixtures": [
+        {
+          "queryContains": "AcmeCloud",
+          "results": [
+            {
+              "title": "AcmeCloud Pricing",
+              "url": "https://acmecloud.example.com/pricing",
+              "domain": "acmecloud.example.com",
+              "content": "AcmeCloud Pro is $12.00 per month.",
+              "publishedAt": "2026-11-12T00:00:00.000Z"
+            }
+          ]
+        }
+      ],
+      "openaiFixtures": [
+        {
+          "functionCalls": [
+            {
+              "name": "web_search",
+              "arguments": { "query": "AcmeCloud latest pricing", "searchDepth": "basic", "maxResults": 5 }
+            }
+          ]
+        },
+        {
+          "finalAnswer": {
+            "answer": "AcmeCloud Pro is $12.00 per month according to the official pricing page.",
+            "citations": []
+          }
+        }
+      ],
+      "expected": {
+        "mustSearch": true,
+        "maxSearchCalls": 3,
+        "answerMustContain": ["12"]
+      },
+      "grading": { "critical": ["mustSearch"], "soft": [], "useLlmJudge": false },
+      "limits": { "timeoutMs": 60000 }
+    },
+    {
+      "id": "agent-memory-no-search",
+      "name": "Yesterday question uses memory not search",
+      "version": 1,
+      "category": "agent_orchestration",
+      "tags": ["tools", "memory"],
+      "mode": "deterministic",
+      "clock": {
+        "now": "2026-11-13T12:00:00.000+05:30",
+        "timeZone": "Asia/Kolkata"
+      },
+      "initialState": {
+        "conversations": [
+          {
+            "title": "Yesterday chat",
+            "messages": [
+              {
+                "role": "user",
+                "content": "Remember that my preferred ORM is Drizzle.",
+                "createdAt": "2026-11-12T10:00:00.000Z"
+              },
+              {
+                "role": "assistant",
+                "content": "Noted: preferred ORM is Drizzle.",
+                "createdAt": "2026-11-12T10:01:00.000Z"
+              }
+            ]
+          }
+        ],
+        "memoryFacts": [
+          {
+            "category": "preference",
+            "memoryKey": "orm.preference",
+            "value": "Preferred ORM is Drizzle",
+            "importance": 0.8
+          }
+        ]
+      },
+      "conversationSequence": [
+        { "message": "What did I ask yesterday?" }
+      ],
+      "openaiFixtures": [
+        {
+          "finalAnswer": {
+            "answer": "Yesterday you asked me to remember that your preferred ORM is Drizzle.",
+            "citations": []
+          }
+        }
+      ],
+      "expected": {
+        "mustNotSearch": true,
+        "historicalDate": "2026-11-12",
+        "answerMustContain": ["Drizzle"]
+      },
+      "grading": { "critical": ["mustNotSearch"], "soft": [], "useLlmJudge": false },
+      "limits": { "timeoutMs": 30000 }
+    },
+    {
+      "id": "agent-integration-turn",
+      "name": "Integration mode agent turn persistence",
+      "version": 1,
+      "category": "agent_orchestration",
+      "tags": ["integration"],
+      "mode": "integration",
+      "clock": {
+        "now": "2026-11-13T12:00:00.000+05:30",
+        "timeZone": "Asia/Kolkata"
+      },
+      "initialState": {
+        "conversations": [{ "title": "Integration", "messages": [] }]
+      },
+      "conversationSequence": [
+        { "message": "Say hello without searching the web." }
+      ],
+      "openaiFixtures": [
+        {
+          "finalAnswer": {
+            "answer": "Hello — no search needed.",
+            "citations": []
+          }
+        }
+      ],
+      "expected": {
+        "mustNotSearch": true,
+        "answerMustContain": ["Hello"]
+      },
+      "grading": { "critical": ["mustNotSearch"], "soft": [], "useLlmJudge": false },
+      "limits": { "timeoutMs": 30000 }
+    }
+  ]
+}

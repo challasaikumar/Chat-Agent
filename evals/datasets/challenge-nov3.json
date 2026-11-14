@@ -1,0 +1,195 @@
+{
+  "name": "challenge-nov3",
+  "version": 1,
+  "description": "Hiring challenge scenario 2: What did I ask on 3 November?",
+  "cases": [
+    {
+      "id": "nov3-historical-001",
+      "name": "November 3 historical question verification",
+      "version": 1,
+      "category": "historical_retrieval",
+      "description": "Retrieve Nov 3 conversation and distinguish supported vs changed vs insufficient claims.",
+      "tags": ["nov3", "historical", "challenge"],
+      "mode": "deterministic",
+      "clock": {
+        "now": "2026-11-13T10:00:00.000+05:30",
+        "timeZone": "Asia/Kolkata"
+      },
+      "initialState": {
+        "conversations": [
+          {
+            "title": "Postgres cheap hosting Nov 3",
+            "createdAt": "2026-11-03T08:00:00.000Z",
+            "messages": [
+              {
+                "role": "user",
+                "content": "What is the cheapest managed Postgres for a side project?",
+                "createdAt": "2026-11-03T08:00:00.000Z"
+              },
+              {
+                "role": "assistant",
+                "content": "At the time, Neon free tier looked strongest for small projects. Railway Hobby was $5/mo. Render free Postgres was available.",
+                "createdAt": "2026-11-03T08:02:00.000Z"
+              }
+            ]
+          }
+        ],
+        "snapshots": [
+          {
+            "conversationKey": "Postgres cheap hosting Nov 3",
+            "query": "cheapest managed Postgres side project",
+            "title": "Nov3 Postgres baseline",
+            "capturedAt": "2026-11-03T08:01:00.000Z",
+            "sources": [
+              {
+                "title": "Neon pricing",
+                "url": "https://neon.tech/pricing?asof=2026-11-03",
+                "domain": "neon.tech",
+                "content": "Neon free tier available for side projects.",
+                "publishedAt": "2026-10-15T00:00:00.000Z",
+                "contentHash": "nov3-neon-h"
+              },
+              {
+                "title": "Railway pricing",
+                "url": "https://railway.app/pricing?asof=2026-11-03",
+                "domain": "railway.app",
+                "content": "Railway Hobby Postgres $5.00 per month.",
+                "publishedAt": "2026-10-15T00:00:00.000Z",
+                "contentHash": "nov3-railway-h"
+              }
+            ]
+          },
+          {
+            "conversationKey": "Postgres cheap hosting Nov 3",
+            "query": "Neon Railway Render Postgres pricing today",
+            "title": "Nov3 current verification",
+            "capturedAt": "2026-11-13T09:00:00.000Z",
+            "sources": [
+              {
+                "title": "Neon pricing current",
+                "url": "https://neon.tech/pricing",
+                "domain": "neon.tech",
+                "content": "Neon free tier remains available for side projects.",
+                "publishedAt": "2026-11-10T00:00:00.000Z",
+                "contentHash": "nov3-neon-c"
+              },
+              {
+                "title": "Railway pricing current",
+                "url": "https://railway.app/pricing",
+                "domain": "railway.app",
+                "content": "Railway Hobby Postgres $7.00 per month.",
+                "publishedAt": "2026-11-10T00:00:00.000Z",
+                "contentHash": "nov3-railway-c"
+              }
+            ]
+          }
+        ],
+        "claims": [
+          {
+            "entityName": "Neon",
+            "category": "pricing",
+            "attribute": "free_tier",
+            "originalValue": "free",
+            "normalizedValue": "0.00",
+            "numericValue": "0.00",
+            "currency": "USD",
+            "billingPeriod": "monthly",
+            "planName": "Free",
+            "sourceUrl": "https://neon.tech/pricing?asof=2026-11-03",
+            "evidenceExcerpt": "Neon free tier available for side projects.",
+            "observedAt": "2026-11-03T08:01:00.000Z",
+            "contentHash": "nov3-claim-neon-h"
+          },
+          {
+            "entityName": "Neon",
+            "category": "pricing",
+            "attribute": "free_tier",
+            "originalValue": "free",
+            "normalizedValue": "0.00",
+            "numericValue": "0.00",
+            "currency": "USD",
+            "billingPeriod": "monthly",
+            "planName": "Free",
+            "sourceUrl": "https://neon.tech/pricing",
+            "evidenceExcerpt": "Neon free tier remains available for side projects.",
+            "observedAt": "2026-11-13T09:00:00.000Z",
+            "contentHash": "nov3-claim-neon-c"
+          },
+          {
+            "entityName": "Railway",
+            "category": "pricing",
+            "attribute": "hobby_monthly",
+            "originalValue": "$5/mo",
+            "normalizedValue": "5.00",
+            "numericValue": "5.00",
+            "currency": "USD",
+            "billingPeriod": "monthly",
+            "planName": "Hobby",
+            "sourceUrl": "https://railway.app/pricing?asof=2026-11-03",
+            "evidenceExcerpt": "Railway Hobby Postgres $5.00 per month.",
+            "observedAt": "2026-11-03T08:01:00.000Z",
+            "contentHash": "nov3-claim-rail-h"
+          },
+          {
+            "entityName": "Railway",
+            "category": "pricing",
+            "attribute": "hobby_monthly",
+            "originalValue": "$7/mo",
+            "normalizedValue": "7.00",
+            "numericValue": "7.00",
+            "currency": "USD",
+            "billingPeriod": "monthly",
+            "planName": "Hobby",
+            "sourceUrl": "https://railway.app/pricing",
+            "evidenceExcerpt": "Railway Hobby Postgres $7.00 per month.",
+            "observedAt": "2026-11-13T09:00:00.000Z",
+            "contentHash": "nov3-claim-rail-c"
+          }
+        ]
+      },
+      "conversationSequence": [
+        {
+          "message": "What did I ask you on 3 November? Is your answer still correct today?"
+        }
+      ],
+      "openaiFixtures": [
+        {
+          "finalAnswer": {
+            "answer": "On 3 November you asked: What is the cheapest managed Postgres for a side project? I answered that Neon free tier looked strongest. Neon free tier remains supported. Railway Hobby changed from $5.00 to $7.00. Render free Postgres has insufficient current evidence in fixtures.",
+            "citations": []
+          }
+        }
+      ],
+      "expected": {
+        "historicalDate": "2026-11-03",
+        "entities": ["Neon", "Railway"],
+        "conversationTitleContains": "Nov 3",
+        "historicalMustContain": [
+          "cheapest managed Postgres"
+        ],
+        "answerMustContain": [
+          "Neon",
+          "Railway"
+        ],
+        "priceComparisons": [
+          {
+            "entity": "Railway",
+            "planName": "Hobby",
+            "historicalValue": "5.00",
+            "currentValue": "7.00",
+            "absoluteDifference": "2.00",
+            "percentageDifference": "40.00",
+            "changeType": "PRICE_INCREASED"
+          }
+        ],
+        "mustNotSearch": true
+      },
+      "grading": {
+        "critical": ["historicalDate", "answerMustContain", "priceComparisons"],
+        "soft": [],
+        "useLlmJudge": false
+      },
+      "limits": { "timeoutMs": 60000 }
+    }
+  ]
+}

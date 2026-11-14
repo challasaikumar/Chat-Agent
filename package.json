@@ -1,0 +1,51 @@
+{
+  "name": "minimi-research-agent",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "workspaces": [
+    "apps/api",
+    "apps/web",
+    "packages/shared"
+  ],
+  "scripts": {
+    "postinstall": "npm run build -w @minimi/shared",
+    "dev": "npm run build -w @minimi/shared && concurrently -k -n SHARED,API,WEB \"npm run dev -w @minimi/shared\" \"npm run dev -w @minimi/api\" \"npm run dev -w @minimi/web\"",
+    "build": "npm run build -w @minimi/shared && npm run build -w @minimi/api && npm run build -w @minimi/web",
+    "start": "npm run start -w @minimi/api",
+    "typecheck": "npm run build -w @minimi/shared && npm run typecheck --workspaces --if-present",
+    "test": "npm run build -w @minimi/shared && vitest run",
+    "db:generate": "npm run db:generate -w @minimi/api",
+    "db:migrate": "npm run db:migrate -w @minimi/api",
+    "db:studio": "npm run db:studio -w @minimi/api",
+    "eval": "tsx apps/api/src/evaluation/cli.ts eval",
+    "eval:memory": "tsx apps/api/src/evaluation/cli.ts eval:memory",
+    "eval:temporal": "tsx apps/api/src/evaluation/cli.ts eval:temporal",
+    "eval:evidence": "tsx apps/api/src/evaluation/cli.ts eval:evidence",
+    "eval:agent": "tsx apps/api/src/evaluation/cli.ts eval:agent",
+    "eval:integration": "tsx apps/api/src/evaluation/cli.ts eval:integration",
+    "eval:live": "tsx apps/api/src/evaluation/cli.ts eval:live",
+    "eval:report": "tsx apps/api/src/evaluation/cli.ts eval:report",
+    "eval:compare": "tsx apps/api/src/evaluation/cli.ts eval:compare",
+    "perf:baseline": "tsx apps/api/src/performance/cli.ts perf:baseline",
+    "perf:smoke": "tsx apps/api/src/performance/cli.ts perf:smoke",
+    "perf:optimized": "tsx apps/api/src/performance/cli.ts perf:optimized",
+    "perf:load": "tsx apps/api/src/performance/cli.ts perf:load",
+    "perf:report": "tsx apps/api/src/performance/cli.ts perf:report",
+    "perf:compare": "tsx apps/api/src/performance/cli.ts perf:compare",
+    "auth:bootstrap": "tsx apps/api/src/admin/provisioning.cli.ts",
+    "auth:provision-user": "tsx apps/api/src/admin/provision-user.cli.ts",
+    "security:audit": "npm audit --omit=dev",
+    "security:check": "npm audit --audit-level=high --omit=dev",
+    "security:report": "mkdir -p reports/security && npm audit --json --omit=dev > reports/security/npm-audit.json || true"
+  },
+
+  "devDependencies": {
+    "concurrently": "^9.0.0",
+    "typescript": "^5.8.0",
+    "vitest": "^3.0.0"
+  }
+}

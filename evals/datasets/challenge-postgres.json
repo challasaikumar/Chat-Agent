@@ -1,0 +1,381 @@
+{
+  "name": "challenge-postgres",
+  "version": 1,
+  "description": "Hiring challenge scenario 3: Last Tuesday Postgres hosting pricing.",
+  "cases": [
+    {
+      "id": "postgres-hosting-001",
+      "name": "Last Tuesday Postgres hosting pricing deltas",
+      "version": 1,
+      "category": "temporal_research",
+      "description": "Resolve last Tuesday (2026-11-10) and compare Neon/Railway/Render monthly prices.",
+      "tags": ["postgres", "pricing", "challenge"],
+      "mode": "deterministic",
+      "clock": {
+        "now": "2026-11-13T12:00:00.000+05:30",
+        "timeZone": "Asia/Kolkata"
+      },
+      "initialState": {
+        "conversations": [
+          {
+            "title": "Postgres hosting last Tuesday",
+            "createdAt": "2026-11-10T09:00:00.000Z",
+            "messages": [
+              {
+                "role": "user",
+                "content": "Compare Neon, Railway, and Render Postgres hosting monthly pricing.",
+                "createdAt": "2026-11-10T09:00:00.000Z"
+              },
+              {
+                "role": "assistant",
+                "content": "Neon Launch $19/mo, Railway Hobby $5/mo, Render Basic $7/mo (fixture).",
+                "createdAt": "2026-11-10T09:05:00.000Z"
+              }
+            ]
+          }
+        ],
+        "snapshots": [
+          {
+            "conversationKey": "Postgres hosting last Tuesday",
+            "query": "Neon Railway Render Postgres hosting pricing",
+            "title": "Hosting baseline Tuesday",
+            "capturedAt": "2026-11-10T09:02:00.000Z",
+            "sources": [
+              {
+                "title": "Neon",
+                "url": "https://neon.tech/pricing?asof=2026-11-10",
+                "domain": "neon.tech",
+                "content": "Neon Launch plan $19.00 per month.",
+                "publishedAt": "2026-11-01T00:00:00.000Z",
+                "contentHash": "pg-h-neon"
+              },
+              {
+                "title": "Railway",
+                "url": "https://railway.app/pricing?asof=2026-11-10",
+                "domain": "railway.app",
+                "content": "Railway Hobby $5.00 per month.",
+                "publishedAt": "2026-11-01T00:00:00.000Z",
+                "contentHash": "pg-h-rail"
+              },
+              {
+                "title": "Render",
+                "url": "https://render.com/pricing?asof=2026-11-10",
+                "domain": "render.com",
+                "content": "Render Basic Postgres $7.00 per month.",
+                "publishedAt": "2026-11-01T00:00:00.000Z",
+                "contentHash": "pg-h-render"
+              }
+            ]
+          },
+          {
+            "conversationKey": "Postgres hosting last Tuesday",
+            "query": "Neon Railway Render Postgres pricing update",
+            "title": "Hosting current",
+            "capturedAt": "2026-11-13T11:00:00.000Z",
+            "sources": [
+              {
+                "title": "Neon current",
+                "url": "https://neon.tech/pricing",
+                "domain": "neon.tech",
+                "content": "Neon Launch plan $19.00 per month.",
+                "publishedAt": "2026-11-12T00:00:00.000Z",
+                "contentHash": "pg-c-neon"
+              },
+              {
+                "title": "Railway current",
+                "url": "https://railway.app/pricing",
+                "domain": "railway.app",
+                "content": "Railway Hobby $6.00 per month.",
+                "publishedAt": "2026-11-12T00:00:00.000Z",
+                "contentHash": "pg-c-rail"
+              },
+              {
+                "title": "Render current",
+                "url": "https://render.com/pricing",
+                "domain": "render.com",
+                "content": "Render Basic Postgres $7.00 per month.",
+                "publishedAt": "2026-11-12T00:00:00.000Z",
+                "contentHash": "pg-c-render"
+              },
+              {
+                "title": "Render annual (not comparable)",
+                "url": "https://render.com/pricing/annual",
+                "domain": "render.com",
+                "content": "Render Basic Postgres $70.00 per year.",
+                "publishedAt": "2026-11-12T00:00:00.000Z",
+                "contentHash": "pg-c-render-annual"
+              }
+            ]
+          }
+        ],
+        "claims": [
+          {
+            "entityName": "Neon",
+            "category": "pricing",
+            "attribute": "launch_monthly",
+            "originalValue": "$19/mo",
+            "numericValue": "19.00",
+            "currency": "USD",
+            "billingPeriod": "monthly",
+            "planName": "Launch",
+            "sourceUrl": "https://neon.tech/pricing?asof=2026-11-10",
+            "evidenceExcerpt": "Neon Launch plan $19.00 per month.",
+            "observedAt": "2026-11-10T09:02:00.000Z",
+            "contentHash": "pg-claim-neon-h"
+          },
+          {
+            "entityName": "Neon",
+            "category": "pricing",
+            "attribute": "launch_monthly",
+            "originalValue": "$19/mo",
+            "numericValue": "19.00",
+            "currency": "USD",
+            "billingPeriod": "monthly",
+            "planName": "Launch",
+            "sourceUrl": "https://neon.tech/pricing",
+            "evidenceExcerpt": "Neon Launch plan $19.00 per month.",
+            "observedAt": "2026-11-13T11:00:00.000Z",
+            "contentHash": "pg-claim-neon-c"
+          },
+          {
+            "entityName": "Railway",
+            "category": "pricing",
+            "attribute": "hobby_monthly",
+            "originalValue": "$5/mo",
+            "numericValue": "5.00",
+            "currency": "USD",
+            "billingPeriod": "monthly",
+            "planName": "Hobby",
+            "sourceUrl": "https://railway.app/pricing?asof=2026-11-10",
+            "evidenceExcerpt": "Railway Hobby $5.00 per month.",
+            "observedAt": "2026-11-10T09:02:00.000Z",
+            "contentHash": "pg-claim-rail-h"
+          },
+          {
+            "entityName": "Railway",
+            "category": "pricing",
+            "attribute": "hobby_monthly",
+            "originalValue": "$6/mo",
+            "numericValue": "6.00",
+            "currency": "USD",
+            "billingPeriod": "monthly",
+            "planName": "Hobby",
+            "sourceUrl": "https://railway.app/pricing",
+            "evidenceExcerpt": "Railway Hobby $6.00 per month.",
+            "observedAt": "2026-11-13T11:00:00.000Z",
+            "contentHash": "pg-claim-rail-c"
+          },
+          {
+            "entityName": "Render",
+            "category": "pricing",
+            "attribute": "basic_monthly",
+            "originalValue": "$7/mo",
+            "numericValue": "7.00",
+            "currency": "USD",
+            "billingPeriod": "monthly",
+            "planName": "Basic",
+            "sourceUrl": "https://render.com/pricing?asof=2026-11-10",
+            "evidenceExcerpt": "Render Basic Postgres $7.00 per month.",
+            "observedAt": "2026-11-10T09:02:00.000Z",
+            "contentHash": "pg-claim-render-h"
+          },
+          {
+            "entityName": "Render",
+            "category": "pricing",
+            "attribute": "basic_monthly",
+            "originalValue": "$7/mo",
+            "numericValue": "7.00",
+            "currency": "USD",
+            "billingPeriod": "monthly",
+            "planName": "Basic",
+            "sourceUrl": "https://render.com/pricing",
+            "evidenceExcerpt": "Render Basic Postgres $7.00 per month.",
+            "observedAt": "2026-11-13T11:00:00.000Z",
+            "contentHash": "pg-claim-render-c"
+          },
+          {
+            "entityName": "Render",
+            "category": "pricing",
+            "attribute": "basic_annual",
+            "originalValue": "$70/yr",
+            "numericValue": "70.00",
+            "currency": "USD",
+            "billingPeriod": "annual",
+            "planName": "Basic",
+            "sourceUrl": "https://render.com/pricing/annual",
+            "evidenceExcerpt": "Render Basic Postgres $70.00 per year.",
+            "observedAt": "2026-11-13T11:00:00.000Z",
+            "contentHash": "pg-claim-render-annual"
+          }
+        ]
+      },
+      "conversationSequence": [
+        {
+          "message": "Last Tuesday I asked you about Postgres hosting. Has any pricing changed since then?",
+          "expectSearch": true
+        }
+      ],
+      "searchFixtures": [
+        {
+          "queryContains": "Postgres",
+          "results": [
+            {
+              "title": "Railway pricing",
+              "url": "https://railway.app/pricing",
+              "domain": "railway.app",
+              "content": "Railway Hobby $6.00 per month.",
+              "publishedAt": "2026-11-12T00:00:00.000Z"
+            }
+          ]
+        }
+      ],
+      "openaiFixtures": [
+        {
+          "functionCalls": [
+            {
+              "name": "web_search",
+              "arguments": { "query": "Neon Railway Render Postgres hosting pricing", "searchDepth": "basic", "maxResults": 5 }
+            }
+          ]
+        },
+        {
+          "finalAnswer": {
+            "answer": "Last Tuesday (2026-11-10) you compared Neon, Railway, and Render. Railway Hobby increased from $5.00 to $6.00 (+$1.00, +20%). Neon Launch $19.00 and Render Basic $7.00 monthly unchanged. Render annual $70 is not comparable to monthly.",
+            "citations": []
+          }
+        }
+      ],
+      "expected": {
+        "resolvedWeekday": "2026-11-10",
+        "entities": ["Neon", "Railway", "Render"],
+        "mustSearch": true,
+        "priceComparisons": [
+          {
+            "entity": "Railway",
+            "planName": "Hobby",
+            "historicalValue": "5.00",
+            "currentValue": "6.00",
+            "absoluteDifference": "1.00",
+            "percentageDifference": "20.00",
+            "changeType": "PRICE_INCREASED"
+          }
+        ],
+        "conversationTitleContains": "Postgres",
+        "answerMustContain": ["Railway", "5.00", "6.00"]
+      },
+      "grading": {
+        "critical": ["resolvedWeekday", "priceComparisons", "entities"],
+        "soft": [],
+        "useLlmJudge": false
+      },
+      "limits": { "timeoutMs": 90000 }
+    },
+    {
+      "id": "postgres-conflicting-currency",
+      "name": "Postgres different currency not comparable",
+      "version": 1,
+      "category": "temporal_research",
+      "tags": ["postgres", "variant", "currency"],
+      "mode": "deterministic",
+      "clock": {
+        "now": "2026-11-13T12:00:00.000+05:30",
+        "timeZone": "Asia/Kolkata"
+      },
+      "initialState": {
+        "conversations": [
+          {
+            "title": "Currency variant",
+            "messages": [
+              {
+                "role": "user",
+                "content": "Neon pricing in EUR vs USD",
+                "createdAt": "2026-11-10T09:00:00.000Z"
+              }
+            ]
+          }
+        ],
+        "snapshots": [
+          {
+            "conversationKey": "Currency variant",
+            "query": "Neon EUR",
+            "title": "EUR hist",
+            "capturedAt": "2026-11-10T09:00:00.000Z",
+            "sources": [
+              {
+                "title": "Neon EUR",
+                "url": "https://neon.tech/pricing/eu",
+                "domain": "neon.tech",
+                "content": "Neon Launch €18.00 per month.",
+                "contentHash": "pg-eur-h"
+              }
+            ]
+          },
+          {
+            "conversationKey": "Currency variant",
+            "query": "Neon USD",
+            "title": "USD current",
+            "capturedAt": "2026-11-13T09:00:00.000Z",
+            "sources": [
+              {
+                "title": "Neon USD",
+                "url": "https://neon.tech/pricing/us",
+                "domain": "neon.tech",
+                "content": "Neon Launch $19.00 per month.",
+                "contentHash": "pg-usd-c"
+              }
+            ]
+          }
+        ],
+        "claims": [
+          {
+            "entityName": "Neon",
+            "category": "pricing",
+            "attribute": "launch_monthly",
+            "originalValue": "€18/mo",
+            "numericValue": "18.00",
+            "currency": "EUR",
+            "billingPeriod": "monthly",
+            "planName": "Launch",
+            "sourceUrl": "https://neon.tech/pricing/eu",
+            "evidenceExcerpt": "Neon Launch €18.00 per month.",
+            "observedAt": "2026-11-10T09:00:00.000Z",
+            "contentHash": "pg-eur-claim"
+          },
+          {
+            "entityName": "Neon",
+            "category": "pricing",
+            "attribute": "launch_monthly",
+            "originalValue": "$19/mo",
+            "numericValue": "19.00",
+            "currency": "USD",
+            "billingPeriod": "monthly",
+            "planName": "Launch",
+            "sourceUrl": "https://neon.tech/pricing/us",
+            "evidenceExcerpt": "Neon Launch $19.00 per month.",
+            "observedAt": "2026-11-13T09:00:00.000Z",
+            "contentHash": "pg-usd-claim"
+          }
+        ]
+      },
+      "conversationSequence": [],
+      "expected": {
+        "entities": ["Neon"],
+        "priceComparisons": [
+          {
+            "entity": "Neon",
+            "planName": "Launch",
+            "historicalValue": "18.00",
+            "currentValue": "19.00",
+            "changeType": "NOT_COMPARABLE"
+          }
+        ]
+      },
+      "grading": {
+        "critical": ["priceComparisons"],
+        "soft": [],
+        "useLlmJudge": false
+      },
+      "limits": { "timeoutMs": 30000 }
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+[Unit]
+Description=Minimi Research Agent API
+After=network.target
+
+[Service]
+Type=simple
+User=minimi
+Group=minimi
+WorkingDirectory=/opt/minimi
+EnvironmentFile=/opt/minimi/.env
+ExecStart=/usr/bin/npm run start
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+KillSignal=SIGTERM
+# Data lives in Supabase Postgres (DATABASE_URL in EnvironmentFile); no local database files.
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

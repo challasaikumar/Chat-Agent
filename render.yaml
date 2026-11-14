@@ -1,0 +1,51 @@
+# Minimi API — Render Blueprint
+# Docs: https://render.com/docs/blueprint-spec
+#
+# Deploy: push this repo to GitHub/GitLab → Render Dashboard → New → Blueprint
+# → connect the repo. Set secret env vars in the dashboard (marked sync: false).
+
+services:
+  - type: web
+    name: minimi-api
+    runtime: node
+    plan: starter
+    region: singapore
+    # Keep repo root (npm workspaces + @minimi/shared). Do NOT set rootDir to apps/api.
+    buildCommand: npm ci && npm run build -w @minimi/shared && npm run build -w @minimi/api
+    startCommand: npm run start -w @minimi/api
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: "24"
+      - key: API_HOST
+        value: "0.0.0.0"
+      - key: AUTH_MODE
+        value: session
+      # Cross-origin UI (Vercel + Render): do NOT use __Host- cookie prefix.
+      - key: AUTH_COOKIE_NAME
+        value: minimi_session
+      - key: AUTH_REGISTRATION_MODE
+        value: disabled
+      - key: APP_TIME_ZONE
+        value: Asia/Kolkata
+      # Set these in the Render dashboard (secrets / per-environment):
+      - key: DATABASE_URL
+        sync: false
+      - key: APP_ALLOWED_ORIGINS
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: OPENAI_BASE_URL
+        sync: false
+      - key: OPENAI_MODEL
+        sync: false
+      - key: TAVILY_API_KEY
+        sync: false
+      - key: AUTH_BOOTSTRAP_ADMIN_EMAIL
+        sync: false
+      - key: AUTH_BOOTSTRAP_ADMIN_PASSWORD
+        sync: false

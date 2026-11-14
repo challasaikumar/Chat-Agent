@@ -1,0 +1,30 @@
+import type { ClaimCategory } from "../../db/schema.js";
+
+export type DraftClaim = {
+  entityId: string | null;
+  entityName: string;
+  category: ClaimCategory;
+  attribute: string;
+  originalValue: string;
+  normalizedValue: string | null;
+  numericValue: string | null;
+  currency: string | null;
+  billingPeriod: string | null;
+  billingBasis: string | null;
+  unit: string | null;
+  planName: string | null;
+  region: string | null;
+  seatCount: number | null;
+  featureName: string | null;
+  sourceId: string;
+  snapshotId: string;
+  sourceUrl: string;
+  evidenceExcerpt: string;
+  contentHash: string;
+  publishedAt: Date | null;
+  effectiveAt: Date | null;
+  observedAt: Date;
+  extractionConfidence: number;
+  extractionModel: string | null;
+  verificationStatus: "verified" | "unverified" | "rejected";
+};

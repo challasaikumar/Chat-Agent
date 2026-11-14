@@ -1,0 +1,402 @@
+{
+  "name": "challenge-crm",
+  "version": 1,
+  "description": "Hiring challenge scenario 1: CRM pricing and feature changes (deterministic fixtures).",
+  "cases": [
+    {
+      "id": "crm-pricing-001",
+      "name": "CRM pricing change detection",
+      "version": 1,
+      "category": "temporal_research",
+      "description": "Five CRM tools shortlisted historically; HubSpot Pro price increased; controlled current search fixtures.",
+      "tags": ["crm", "pricing", "memory", "challenge"],
+      "mode": "deterministic",
+      "clock": {
+        "now": "2026-11-13T12:00:00.000+05:30",
+        "timeZone": "Asia/Kolkata"
+      },
+      "initialState": {
+        "conversations": [
+          {
+            "id": "00000000-0000-4000-8000-0000000000c1",
+            "title": "CRM shortlist Nov 3",
+            "createdAt": "2026-11-03T09:00:00.000Z",
+            "messages": [
+              {
+                "role": "user",
+                "content": "Shortlist 5 CRM tools for a 20-person sales team: HubSpot, Salesforce, Pipedrive, Zoho CRM, Close. Capture Pro monthly pricing.",
+                "createdAt": "2026-11-03T09:00:00.000Z"
+              },
+              {
+                "role": "assistant",
+                "content": "Baseline: HubSpot Pro $20/mo, Salesforce Pro $25/mo, Pipedrive Pro $30/mo, Zoho CRM Pro $35/mo, Close Pro $40/mo (fixture prices).",
+                "createdAt": "2026-11-03T09:05:00.000Z"
+              }
+            ]
+          }
+        ],
+        "snapshots": [
+          {
+            "conversationKey": "00000000-0000-4000-8000-0000000000c1",
+            "query": "HubSpot Salesforce Pipedrive Zoho Close Pro pricing",
+            "title": "CRM historical baseline",
+            "capturedAt": "2026-11-03T09:10:00.000Z",
+            "sources": [
+              {
+                "title": "HubSpot Pricing",
+                "url": "https://www.hubspot.com/pricing/crm?asof=2026-11-03",
+                "domain": "www.hubspot.com",
+                "content": "HubSpot Pro plan costs $20.00 per month.",
+                "publishedAt": "2026-10-01T00:00:00.000Z",
+                "contentHash": "crm-h-hubspot"
+              },
+              {
+                "title": "Salesforce Pricing",
+                "url": "https://www.salesforce.com/editions-pricing/sales-cloud/?asof=2026-11-03",
+                "domain": "www.salesforce.com",
+                "content": "Salesforce Pro plan costs $25.00 per month.",
+                "publishedAt": "2026-10-01T00:00:00.000Z",
+                "contentHash": "crm-h-sf"
+              },
+              {
+                "title": "Pipedrive Pricing",
+                "url": "https://www.pipedrive.com/en/pricing?asof=2026-11-03",
+                "domain": "www.pipedrive.com",
+                "content": "Pipedrive Pro plan costs $30.00 per month.",
+                "publishedAt": "2026-10-01T00:00:00.000Z",
+                "contentHash": "crm-h-pd"
+              },
+              {
+                "title": "Zoho CRM Pricing",
+                "url": "https://www.zoho.com/crm/pricing.html?asof=2026-11-03",
+                "domain": "www.zoho.com",
+                "content": "Zoho CRM Pro plan costs $35.00 per month.",
+                "publishedAt": "2026-10-01T00:00:00.000Z",
+                "contentHash": "crm-h-zoho"
+              },
+              {
+                "title": "Close Pricing",
+                "url": "https://www.close.com/pricing/?asof=2026-11-03",
+                "domain": "www.close.com",
+                "content": "Close Pro plan costs $40.00 per month.",
+                "publishedAt": "2026-10-01T00:00:00.000Z",
+                "contentHash": "crm-h-close"
+              }
+            ]
+          },
+          {
+            "conversationKey": "00000000-0000-4000-8000-0000000000c1",
+            "query": "CRM pricing update HubSpot Salesforce Pipedrive Zoho Close",
+            "title": "CRM current evidence",
+            "capturedAt": "2026-11-13T10:00:00.000Z",
+            "sources": [
+              {
+                "title": "HubSpot Pricing (current)",
+                "url": "https://www.hubspot.com/pricing/crm",
+                "domain": "www.hubspot.com",
+                "content": "HubSpot Pro plan costs $30.00 per month. New AI assistant shipped Nov 2026.",
+                "publishedAt": "2026-11-12T00:00:00.000Z",
+                "contentHash": "crm-c-hubspot"
+              },
+              {
+                "title": "HubSpot changelog",
+                "url": "https://www.hubspot.com/changelog",
+                "domain": "www.hubspot.com",
+                "content": "Shipped AI assistant for Professional seats on 2026-11-10.",
+                "publishedAt": "2026-11-10T00:00:00.000Z",
+                "contentHash": "crm-c-hubspot-cl"
+              },
+              {
+                "title": "Third-party CRM roundup",
+                "url": "https://techblog.example.com/crm-nov-2026",
+                "domain": "techblog.example.com",
+                "content": "HubSpot Pro reportedly $30/mo; community claims $18/mo (unverified).",
+                "publishedAt": "2026-11-11T00:00:00.000Z",
+                "contentHash": "crm-c-third"
+              },
+              {
+                "title": "Old HubSpot pricing mirror",
+                "url": "https://archive.example.com/hubspot-pricing-2024",
+                "domain": "archive.example.com",
+                "content": "HubSpot Pro plan costs $20.00 per month.",
+                "publishedAt": "2024-01-01T00:00:00.000Z",
+                "contentHash": "crm-c-old"
+              },
+              {
+                "title": "Syndicated HubSpot pricing",
+                "url": "https://syndication.example.com/hubspot-pricing-crm",
+                "domain": "syndication.example.com",
+                "content": "HubSpot Pro plan costs $30.00 per month. New AI assistant shipped Nov 2026.",
+                "publishedAt": "2026-11-12T00:00:00.000Z",
+                "contentHash": "crm-c-hubspot"
+              },
+              {
+                "title": "Salesforce Pricing",
+                "url": "https://www.salesforce.com/editions-pricing/sales-cloud/",
+                "domain": "www.salesforce.com",
+                "content": "Salesforce Pro plan costs $25.00 per month.",
+                "publishedAt": "2026-11-01T00:00:00.000Z",
+                "contentHash": "crm-c-sf"
+              },
+              {
+                "title": "Pipedrive Pricing",
+                "url": "https://www.pipedrive.com/en/pricing",
+                "domain": "www.pipedrive.com",
+                "content": "Pipedrive Pro plan costs $30.00 per month.",
+                "publishedAt": "2026-11-01T00:00:00.000Z",
+                "contentHash": "crm-c-pd"
+              },
+              {
+                "title": "Zoho CRM Pricing",
+                "url": "https://www.zoho.com/crm/pricing.html",
+                "domain": "www.zoho.com",
+                "content": "Zoho CRM Pro plan costs $35.00 per month.",
+                "publishedAt": "2026-11-01T00:00:00.000Z",
+                "contentHash": "crm-c-zoho"
+              },
+              {
+                "title": "Close Pricing",
+                "url": "https://www.close.com/pricing/",
+                "domain": "www.close.com",
+                "content": "Close Pro plan costs $40.00 per month.",
+                "publishedAt": "2026-11-01T00:00:00.000Z",
+                "contentHash": "crm-c-close"
+              }
+            ]
+          }
+        ],
+        "claims": [
+          {
+            "entityName": "HubSpot",
+            "category": "pricing",
+            "attribute": "pro_monthly_price",
+            "originalValue": "$20/mo",
+            "normalizedValue": "20.00",
+            "numericValue": "20.00",
+            "currency": "USD",
+            "billingPeriod": "monthly",
+            "planName": "Pro",
+            "sourceUrl": "https://www.hubspot.com/pricing/crm?asof=2026-11-03",
+            "evidenceExcerpt": "HubSpot Pro plan costs $20.00 per month.",
+            "observedAt": "2026-11-03T09:10:00.000Z",
+            "publishedAt": "2026-10-01T00:00:00.000Z",
+            "contentHash": "claim-h-hubspot"
+          },
+          {
+            "entityName": "HubSpot",
+            "category": "pricing",
+            "attribute": "pro_monthly_price",
+            "originalValue": "$30/mo",
+            "normalizedValue": "30.00",
+            "numericValue": "30.00",
+            "currency": "USD",
+            "billingPeriod": "monthly",
+            "planName": "Pro",
+            "sourceUrl": "https://www.hubspot.com/pricing/crm",
+            "evidenceExcerpt": "HubSpot Pro plan costs $30.00 per month.",
+            "observedAt": "2026-11-13T10:00:00.000Z",
+            "publishedAt": "2026-11-12T00:00:00.000Z",
+            "contentHash": "claim-c-hubspot"
+          },
+          {
+            "entityName": "Salesforce",
+            "category": "pricing",
+            "attribute": "pro_monthly_price",
+            "originalValue": "$25/mo",
+            "normalizedValue": "25.00",
+            "numericValue": "25.00",
+            "currency": "USD",
+            "billingPeriod": "monthly",
+            "planName": "Pro",
+            "sourceUrl": "https://www.salesforce.com/editions-pricing/sales-cloud/?asof=2026-11-03",
+            "evidenceExcerpt": "Salesforce Pro plan costs $25.00 per month.",
+            "observedAt": "2026-11-03T09:10:00.000Z",
+            "contentHash": "claim-h-sf"
+          },
+          {
+            "entityName": "Salesforce",
+            "category": "pricing",
+            "attribute": "pro_monthly_price",
+            "originalValue": "$25/mo",
+            "normalizedValue": "25.00",
+            "numericValue": "25.00",
+            "currency": "USD",
+            "billingPeriod": "monthly",
+            "planName": "Pro",
+            "sourceUrl": "https://www.salesforce.com/editions-pricing/sales-cloud/",
+            "evidenceExcerpt": "Salesforce Pro plan costs $25.00 per month.",
+            "observedAt": "2026-11-13T10:00:00.000Z",
+            "contentHash": "claim-c-sf"
+          },
+          {
+            "entityName": "Pipedrive",
+            "category": "pricing",
+            "attribute": "pro_monthly_price",
+            "originalValue": "$30/mo",
+            "normalizedValue": "30.00",
+            "numericValue": "30.00",
+            "currency": "USD",
+            "billingPeriod": "monthly",
+            "planName": "Pro",
+            "sourceUrl": "https://www.pipedrive.com/en/pricing?asof=2026-11-03",
+            "evidenceExcerpt": "Pipedrive Pro plan costs $30.00 per month.",
+            "observedAt": "2026-11-03T09:10:00.000Z",
+            "contentHash": "claim-h-pd"
+          },
+          {
+            "entityName": "Zoho CRM",
+            "category": "pricing",
+            "attribute": "pro_monthly_price",
+            "originalValue": "$35/mo",
+            "normalizedValue": "35.00",
+            "numericValue": "35.00",
+            "currency": "USD",
+            "billingPeriod": "monthly",
+            "planName": "Pro",
+            "sourceUrl": "https://www.zoho.com/crm/pricing.html?asof=2026-11-03",
+            "evidenceExcerpt": "Zoho CRM Pro plan costs $35.00 per month.",
+            "observedAt": "2026-11-03T09:10:00.000Z",
+            "contentHash": "claim-h-zoho"
+          },
+          {
+            "entityName": "Close",
+            "category": "pricing",
+            "attribute": "pro_monthly_price",
+            "originalValue": "$40/mo",
+            "normalizedValue": "40.00",
+            "numericValue": "40.00",
+            "currency": "USD",
+            "billingPeriod": "monthly",
+            "planName": "Pro",
+            "sourceUrl": "https://www.close.com/pricing/?asof=2026-11-03",
+            "evidenceExcerpt": "Close Pro plan costs $40.00 per month.",
+            "observedAt": "2026-11-03T09:10:00.000Z",
+            "contentHash": "claim-h-close"
+          }
+        ],
+        "memoryFacts": [
+          {
+            "category": "requirement",
+            "memoryKey": "crm.team_size",
+            "value": "20-person sales team CRM shortlist",
+            "importance": 0.9,
+            "entityName": "CRM shortlist"
+          }
+        ]
+      },
+      "conversationSequence": [
+        {
+          "conversationKey": "00000000-0000-4000-8000-0000000000c1",
+          "message": "On Monday we shortlisted 5 CRM tools for a 20-person sales team. Has any of them changed pricing or shipped something big since?",
+          "expectSearch": true
+        }
+      ],
+      "searchFixtures": [
+        {
+          "queryContains": "CRM",
+          "results": [
+            {
+              "title": "HubSpot Pricing (current)",
+              "url": "https://www.hubspot.com/pricing/crm",
+              "domain": "www.hubspot.com",
+              "content": "HubSpot Pro plan costs $30.00 per month.",
+              "publishedAt": "2026-11-12T00:00:00.000Z"
+            }
+          ]
+        }
+      ],
+      "openaiFixtures": [
+        {
+          "whenInputContains": "CRM",
+          "functionCalls": [
+            {
+              "name": "web_search",
+              "arguments": { "query": "CRM HubSpot Salesforce Pipedrive Zoho Close pricing changes", "searchDepth": "basic", "maxResults": 5 }
+            }
+          ]
+        },
+        {
+          "finalAnswer": {
+            "answer": "Historical shortlist on 3 November covered HubSpot, Salesforce, Pipedrive, Zoho CRM, and Close. HubSpot Pro increased from $20.00 to $30.00 (+$10.00, +50%). Other Pro monthly prices unchanged in fixtures. HubSpot shipped an AI assistant; outdated archive pricing flagged. Community $18 claim unsupported.",
+            "citations": []
+          }
+        }
+      ],
+      "expected": {
+        "entities": ["HubSpot", "Salesforce", "Pipedrive", "Zoho CRM", "Close"],
+        "historicalDate": "2026-11-09",
+        "mustSearch": true,
+        "maxSearchCalls": 3,
+        "priceComparisons": [
+          {
+            "entity": "HubSpot",
+            "planName": "Pro",
+            "historicalValue": "20.00",
+            "currentValue": "30.00",
+            "absoluteDifference": "10.00",
+            "percentageDifference": "50.00",
+            "changeType": "PRICE_INCREASED"
+          }
+        ],
+        "conversationTitleContains": "CRM",
+        "answerMustContain": ["HubSpot", "20", "30"],
+        "freshnessCategories": ["stale", "current"],
+        "independentSourceMax": 14
+      },
+      "grading": {
+        "critical": ["entities", "priceComparisons", "historicalDate"],
+        "soft": ["freshnessCategories"],
+        "useLlmJudge": false
+      },
+      "limits": {
+        "timeoutMs": 90000,
+        "maxSearches": 3
+      }
+    },
+    {
+      "id": "crm-pricing-missing-baseline",
+      "name": "CRM pricing with missing historical baseline variant",
+      "version": 1,
+      "category": "temporal_research",
+      "description": "Variant: no historical snapshots — date still resolves; entity set empty.",
+      "tags": ["crm", "variant", "missing-baseline"],
+      "mode": "deterministic",
+      "clock": {
+        "now": "2026-11-13T12:00:00.000+05:30",
+        "timeZone": "Asia/Kolkata"
+      },
+      "initialState": {
+        "conversations": [
+          {
+            "title": "Empty CRM context",
+            "messages": []
+          }
+        ]
+      },
+      "conversationSequence": [
+        {
+          "message": "On Monday we shortlisted 5 CRM tools for a 20-person sales team. Has any of them changed pricing or shipped something big since?"
+        }
+      ],
+      "openaiFixtures": [
+        {
+          "finalAnswer": {
+            "answer": "I could not find a historical CRM shortlist baseline in memory for that Monday. I cannot confirm pricing changes without prior evidence.",
+            "citations": []
+          }
+        }
+      ],
+      "expected": {
+        "historicalDate": "2026-11-09",
+        "mustNotSearch": false,
+        "answerMustContain": ["could not find", "baseline"]
+      },
+      "grading": {
+        "critical": ["historicalDate"],
+        "soft": [],
+        "useLlmJudge": false
+      },
+      "limits": { "timeoutMs": 60000 }
+    }
+  ]
+}

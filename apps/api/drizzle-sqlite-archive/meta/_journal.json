@@ -1,0 +1,76 @@
+{
+  "version": "7",
+  "dialect": "sqlite",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "6",
+      "when": 1794578226848,
+      "tag": "0000_stale_doctor_octopus",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1794578694014,
+      "tag": "0001_left_martin_li",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1794579276577,
+      "tag": "0002_late_wither",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1794579777251,
+      "tag": "0003_robust_lethal_legion",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1794580251067,
+      "tag": "0004_real_blue_marvel",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1794580739618,
+      "tag": "0005_kind_tempest",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1794581618165,
+      "tag": "0006_rich_cerebro",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1794582258665,
+      "tag": "0007_young_thunderball",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1794584000000,
+      "tag": "0008_perf_indexes",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1794585000000,
+      "tag": "0009_auth_security",
+      "breakpoints": true
+    }
+  ]
+}

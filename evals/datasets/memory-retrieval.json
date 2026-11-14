@@ -1,0 +1,128 @@
+{
+  "name": "memory-retrieval",
+  "version": 1,
+  "description": "Conversational memory and project separation evaluations.",
+  "cases": [
+    {
+      "id": "memory-preference-001",
+      "name": "Preference recall",
+      "version": 1,
+      "category": "conversational_memory",
+      "tags": ["memory", "preference"],
+      "mode": "deterministic",
+      "clock": {
+        "now": "2026-11-13T12:00:00.000+05:30",
+        "timeZone": "Asia/Kolkata"
+      },
+      "initialState": {
+        "conversations": [
+          {
+            "title": "Preferences",
+            "messages": [
+              {
+                "role": "user",
+                "content": "I prefer TypeScript strict mode for all projects.",
+                "createdAt": "2026-11-01T10:00:00.000Z"
+              }
+            ]
+          }
+        ],
+        "memoryFacts": [
+          {
+            "category": "preference",
+            "memoryKey": "lang.typescript.strict",
+            "value": "Prefers TypeScript strict mode",
+            "importance": 0.9
+          }
+        ]
+      },
+      "conversationSequence": [
+        { "message": "What coding preferences have I told you?" }
+      ],
+      "openaiFixtures": [
+        {
+          "finalAnswer": {
+            "answer": "You prefer TypeScript strict mode for all projects.",
+            "citations": []
+          }
+        }
+      ],
+      "expected": {
+        "mustNotSearch": true,
+        "memoryKeys": ["lang.typescript.strict"],
+        "answerMustContain": ["TypeScript", "strict"],
+        "conversationTitleContains": "Preference"
+      },
+      "grading": { "critical": ["answerMustContain"], "soft": [], "useLlmJudge": false },
+      "limits": { "timeoutMs": 30000 }
+    },
+    {
+      "id": "memory-project-separation",
+      "name": "Multi-project separation",
+      "version": 1,
+      "category": "conversational_memory",
+      "tags": ["memory", "project"],
+      "mode": "deterministic",
+      "clock": {
+        "now": "2026-11-13T12:00:00.000+05:30",
+        "timeZone": "Asia/Kolkata"
+      },
+      "initialState": {
+        "conversations": [
+          {
+            "title": "LMS project",
+            "messages": [
+              {
+                "role": "user",
+                "content": "For the LMS project we chose Postgres.",
+                "createdAt": "2026-11-05T10:00:00.000Z"
+              }
+            ]
+          },
+          {
+            "title": "Shop project",
+            "messages": [
+              {
+                "role": "user",
+                "content": "For the Shop project we chose MySQL.",
+                "createdAt": "2026-11-06T10:00:00.000Z"
+              }
+            ]
+          }
+        ],
+        "memoryFacts": [
+          {
+            "category": "project_context",
+            "memoryKey": "project.lms.db",
+            "value": "LMS project uses Postgres",
+            "entityName": "LMS"
+          },
+          {
+            "category": "project_context",
+            "memoryKey": "project.shop.db",
+            "value": "Shop project uses MySQL",
+            "entityName": "Shop"
+          }
+        ]
+      },
+      "conversationSequence": [
+        { "message": "Which database did we choose for the LMS project?" }
+      ],
+      "openaiFixtures": [
+        {
+          "finalAnswer": {
+            "answer": "For the LMS project you chose Postgres (not MySQL from the Shop project).",
+            "citations": []
+          }
+        }
+      ],
+      "expected": {
+        "mustNotSearch": true,
+        "answerMustContain": ["Postgres"],
+        "answerMustNotContain": ["Shop project uses MySQL as LMS"]
+      },
+      "grading": { "critical": ["answerMustContain"], "soft": [], "useLlmJudge": false },
+      "limits": { "timeoutMs": 30000 }
+    }
+  ]
+}

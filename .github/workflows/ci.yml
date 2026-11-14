@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  build-test-eval:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - name: Deterministic evaluation
+        env:
+          EVAL_ENABLED: "true"
+          EVAL_LIVE_ENABLED: "false"
+          EVAL_LLM_JUDGE_ENABLED: "false"
+          NODE_ENV: test
+          AUTH_MODE: local_dev
+        run: npm run eval
+      - run: npm run build
+      - name: Performance smoke (mocked)
+        env:
+          NODE_ENV: test
+        run: npm run perf:smoke
+      - name: Upload evaluation reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: evaluation-reports
+          path: reports/evaluations
+          if-no-files-found: ignore
+
+  security-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+      - run: npm ci
+      - name: npm audit (omit dev)
+        continue-on-error: true
+        run: npm run security:audit
+      - name: Upload audit JSON
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-audit
+          path: reports/security
+          if-no-files-found: ignore
