@@ -21,7 +21,6 @@ import { AuditService } from "./security/audit.service.js";
 import { registerCors } from "./security/cors.config.js";
 import { registerSecurityHeaders } from "./security/security.headers.js";
 import { registerRateLimits } from "./security/rate-limit.js";
-import { redactSecrets } from "./security/secret-redactor.js";
 import { errorHandler, notFound } from "./utils/errors.js";
 import type { MemoryExtractor } from "./memory/memory-extractor.interface.js";
 import type { SearchProvider } from "./search/search.interface.js";
@@ -67,18 +66,14 @@ export async function buildApp(options: BuildAppOptions = {}) {
     app.decorate("responsesClient", options.responsesClient);
   }
 
-  app.addHook("onRequest", async (request) => {
-    // Redact secrets from any accidental log serialization of headers.
-    if (request.headers.authorization) {
-      request.headers.authorization = redactSecrets(
-        String(request.headers.authorization),
-      );
-    }
-  });
+  // Do NOT mutate request.headers.authorization for "log redaction".
+  // That previously replaced Bearer tokens with "Bearer [redacted]" before
+  // auth ran, which broke all session auth and also blocked cookie fallback.
 
   app.setErrorHandler(errorHandler);
 
   app.setNotFoundHandler((_request, reply) => {
+    void reply.header("Cache-Control", "no-store");
     return reply.status(404).send({
       success: false,
       error: {
@@ -86,6 +81,13 @@ export async function buildApp(options: BuildAppOptions = {}) {
         message: notFound().message,
       },
     });
+  });
+
+  app.addHook("onSend", async (_request, reply, payload) => {
+    if (!reply.getHeader("cache-control")) {
+      void reply.header("Cache-Control", "no-store");
+    }
+    return payload;
   });
 
   await app.register(cookie);

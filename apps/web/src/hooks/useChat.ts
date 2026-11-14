@@ -75,10 +75,23 @@ export function useChat(options: {
     try {
       const page = await listConversations({ limit: 50 });
       setConversations(page.items);
+      setConversationsError(null);
     } catch (error) {
-      setConversationsError(
-        error instanceof Error ? error.message : "Failed to load conversations",
-      );
+      // One retry — covers login→dashboard race / transient 401.
+      try {
+        await new Promise((r) => setTimeout(r, 250));
+        const page = await listConversations({ limit: 50 });
+        setConversations(page.items);
+        setConversationsError(null);
+      } catch (retryError) {
+        setConversationsError(
+          retryError instanceof Error
+            ? retryError.message
+            : error instanceof Error
+              ? error.message
+              : "Failed to load conversations",
+        );
+      }
     } finally {
       setConversationsLoading(false);
     }

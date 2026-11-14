@@ -40,6 +40,9 @@ export async function errorHandler(
   _request: FastifyRequest,
   reply: FastifyReply,
 ): Promise<void> {
+  // Prevent CDNs / Vercel from caching auth failures for /api/*.
+  void reply.header("Cache-Control", "no-store");
+
   if (error instanceof AppError) {
     await reply.status(error.statusCode).send(
       fail(error.code, error.message, error.details),

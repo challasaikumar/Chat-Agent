@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react
 import { AuthContext } from "./AuthContext.js";
 import * as authApi from "./auth.api.js";
 import type { AuthUser } from "./auth.types.js";
-import { ApiError, getSessionToken, setSessionToken } from "../services/api.client.js";
+import { ApiError, setSessionToken } from "../services/api.client.js";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -17,9 +17,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const session = await authApi.fetchSession();
       if (!session.authenticated || !session.user) {
-        if (getSessionToken()) {
-          setSessionToken(null);
-        }
+        // Do not clear a stored Bearer token here — /session can lag behind
+        // cookie/proxy setup. Protected API 401s clear the token instead.
         setUser(null);
         setMode(null);
         return;

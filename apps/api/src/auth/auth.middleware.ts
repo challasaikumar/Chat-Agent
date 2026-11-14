@@ -154,12 +154,13 @@ export async function registerAuthMiddleware(
     }
 
     // Prefer explicit session tokens (cross-origin), then httpOnly cookie.
+    const bearerToken = extractBearerToken(request.headers.authorization);
     const headerToken =
-      extractBearerToken(request.headers.authorization) ??
+      (bearerToken && bearerToken !== "[redacted]" ? bearerToken : undefined) ??
       firstHeader(request.headers["x-minimi-session"])?.trim();
     const rawCookie = request.cookies?.[app.env.AUTH_COOKIE_NAME];
     const validated = await authService.sessions.validateSessionToken(
-      headerToken || rawCookie,
+      headerToken ?? rawCookie,
     );
     const authenticatedViaBearer = Boolean(headerToken && validated);
 
